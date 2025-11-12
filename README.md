@@ -24,7 +24,7 @@ A `.nf-icons` file can be used to customize which icons are used for specific fi
 #### Example `.nf-icons` file
 
 ```
-*.foo 
+*.foo 
 ```
 
-Files matching `*.foo` will be displayed with the `` icon.
+Files matching `*.foo` will be displayed with the `` icon.
