@@ -1,4 +1,4 @@
-# pretty-ls
+# fancy-ls
 
 An `ls` alternative with git support, code language detection, and nerd fonts.
 
