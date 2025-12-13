@@ -18,12 +18,9 @@ to determine the appropriate icon and what color the icon should be.
 
 *You can edit a config file by calling `fancy-tree --edit-config [CONFIG]`.
 
-The configuration files are Lua modules, which makes them runnable scripts. This tool
-provides a small API under the `fancytree` global table. The `fancytree` table provides:
-
-- `is_unix`: A boolean that is `true` on Unix systems and `false` everywhere else.
-- `os`: A string with the name of the operating system.
-- `glob_matches`: A function that takes a glob and a filename and returns `true` if they match.
+The configuration files are Lua modules, which makes them runnable scripts and allow for
+complex behavior if wanted. This tool provides a small API under the `fancytree` global
+table. Check out [`lua/meta`](./lua/meta/) to see the available utilities.
 
 ### `config.lua`
 
