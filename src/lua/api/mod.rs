@@ -3,16 +3,47 @@ use mlua::Lua;
 
 mod path;
 
-/// Creates the table that can be used as the API.
-pub fn create(lua: &Lua) -> mlua::Result<mlua::Table> {
-    let api = lua.create_table()?;
-    api.set("is_unix", IS_UNIX)?;
-    api.set("os", OS)?;
+/// Builder for the API table.
+pub struct Builder {
+    /// Adds `.path` API namespace when true.
+    add_path_api: bool,
+}
 
-    let path_api = path::create(lua)?;
-    api.set("path", path_api)?;
+impl Builder {
+    /// Creates a new builder.
+    #[inline]
+    pub fn new() -> Builder {
+        Self {
+            add_path_api: false,
+        }
+    }
 
-    Ok(api)
+    /// Instructs the builder to add the `.path` namespace that provides path utilities.
+    #[must_use]
+    pub fn with_path(self) -> Self {
+        Self {
+            add_path_api: true,
+            ..self
+        }
+    }
+
+    /// Builds the API table.
+    pub fn build(self, lua: &Lua) -> mlua::Result<mlua::Table> {
+        let api = Self::core(lua)?;
+        let path_api = self.add_path_api.then(|| path::create(lua)).transpose()?;
+        api.set("path", path_api)?;
+
+        Ok(api)
+    }
+
+    /// Creates the core API table.
+    fn core(lua: &Lua) -> mlua::Result<mlua::Table> {
+        let api = lua.create_table()?;
+        api.set("is_unix", IS_UNIX)?;
+        api.set("os", OS)?;
+
+        Ok(api)
+    }
 }
 
 const IS_UNIX: bool = cfg!(unix);

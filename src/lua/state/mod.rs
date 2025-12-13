@@ -14,19 +14,6 @@ pub struct State {
 }
 
 impl State {
-    /// Initializes the API for the Lua state.
-    #[must_use]
-    fn initialize(self) -> mlua::Result<Self> {
-        /// The global name of the API.
-        const API_NAME: &str = "fancytree";
-
-        let api = api::create(&self.inner)?;
-        let globals = self.inner.globals();
-        globals.set(API_NAME, api)?;
-
-        Ok(self)
-    }
-
     /// The inner Lua state.
     pub fn to_inner(&self) -> &Lua {
         &self.inner
