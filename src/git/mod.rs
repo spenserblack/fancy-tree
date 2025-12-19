@@ -1,15 +1,17 @@
 //! Module for git integration.
-use git2::{Repository, Status, StatusOptions};
+use git2::{Repository, StatusOptions};
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
+
+pub mod status;
 
 /// The main struct for git integration.
 pub struct Git {
     /// The main repository.
     repository: Repository,
     /// Cached file statuses.
-    statuses: HashMap<PathBuf, Status>,
+    statuses: HashMap<PathBuf, git2::Status>,
 }
 
 impl Git {
@@ -43,7 +45,7 @@ impl Git {
     }
 
     /// Creates a hashmap of paths to statuses for a repository.
-    fn statuses(repository: &Repository) -> Result<HashMap<PathBuf, Status>, git2::Error> {
+    fn statuses(repository: &Repository) -> Result<HashMap<PathBuf, git2::Status>, git2::Error> {
         let mut options = Self::status_options();
         let statuses = repository
             .statuses(Some(&mut options))?
@@ -72,25 +74,41 @@ impl Git {
         options
     }
 
-    /// Gets the status for a file.
+    /// Gets the tracked status for a file.
+    pub fn tracked_status<P>(&self, path: P) -> Result<Option<status::Tracked>, git2::Error>
+    where
+        P: AsRef<Path>,
+    {
+        self.git2_status(path).map(status::Tracked::from_git2)
+    }
+
+    /// Gets the untracked status for a file.
+    pub fn untracked_status<P>(&self, path: P) -> Result<Option<status::Untracked>, git2::Error>
+    where
+        P: AsRef<Path>,
+    {
+        self.git2_status(path).map(status::Untracked::from_git2)
+    }
+
+    /// Gets the original gt2 status for a file.
     ///
     /// Path should be relative to the repository's root, and ideally should be as
     /// `path/to/file.ext`. In other words, paths should be as simple as possible, and
     /// not have `./` or `../`
-    pub fn status<P>(&self, path: P) -> Result<Status, git2::Error>
+    fn git2_status<P>(&self, path: P) -> Result<git2::Status, git2::Error>
     where
         P: AsRef<Path>,
     {
         // NOTE If the status is not in the cache, then maybe we're looking at an
         //      ignored file or a file that wasn't in the cache due to the status
         //      options set. If that happens we get the status on demand.
-        self.cached_status(&path)
+        self.cached_git2_status(&path)
             .map(Ok)
-            .unwrap_or_else(|| self.on_demand_status(path))
+            .unwrap_or_else(|| self.on_demand_git2_status(path))
     }
 
-    /// Gets the cached status for a path.
-    fn cached_status<P>(&self, path: P) -> Option<Status>
+    /// Gets the cached git2 status for a path.
+    fn cached_git2_status<P>(&self, path: P) -> Option<git2::Status>
     where
         P: AsRef<Path>,
     {
@@ -98,8 +116,8 @@ impl Git {
         self.statuses.get(path).cloned()
     }
 
-    /// Gets the on-demand status for a path.
-    fn on_demand_status<P>(&self, path: P) -> Result<Status, git2::Error>
+    /// Gets the on-demand git2 status for a path.
+    fn on_demand_git2_status<P>(&self, path: P) -> Result<git2::Status, git2::Error>
     where
         P: AsRef<Path>,
     {

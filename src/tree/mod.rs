@@ -1,6 +1,10 @@
 //! Provides the utility for generating a tree.
 use crate::color::{Color, ColorChoice};
 use crate::config;
+use crate::git::{
+    self, Git,
+    status::{self, Status},
+};
 use crate::tree::entry::attributes;
 pub use builder::Builder;
 pub use charset::Charset;
@@ -15,7 +19,6 @@ use std::path::Path;
 mod builder;
 mod charset;
 pub mod entry;
-use crate::git::Git;
 
 // Generates a tree.
 pub struct Tree<'git, 'charset, P: AsRef<Path>> {
@@ -160,12 +163,35 @@ where
         W: Write,
         P2: AsRef<Path>,
     {
+        let path = entry.path();
+        if let Some(git) = self.git {
+            const NO_STATUS: &str = " ";
+
+            // HACK cached status keys don't have a ./ prefix and git2 apparently doesn't it.
+            let path = path
+                .strip_prefix("./")
+                .expect("Should be able to strip the ./ prefix");
+            let untracked_status = git
+                .untracked_status(path)
+                .ok()
+                .flatten()
+                .map(|untracked| untracked.status().as_str())
+                .unwrap_or(NO_STATUS);
+            let tracked_status = git
+                .tracked_status(path)
+                .ok()
+                .flatten()
+                .map(|tracked| tracked.status().as_str())
+                .unwrap_or(NO_STATUS);
+
+            write!(writer, "{untracked_status}{tracked_status} ")?;
+        }
+
         let icon = self.get_icon(entry);
         self.write_colorized_for(entry, writer, icon)?;
         // NOTE Padding for the icons
         write!(writer, " ")?;
 
-        let path = entry.path();
         Self::write_path(writer, path, full_name)
     }
 
