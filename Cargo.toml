@@ -2,7 +2,7 @@
 name = "fancy-tree"
 version = "0.1.0"
 edition = "2024"
-exclude = [".editorconfig", ".gitignore", ".luarc.lua", "/lua/"]
+exclude = [".editorconfig", ".gitignore", ".git-blame-ignore-revs", ".luarc.lua", "/lua/"]
 
 [features]
 default = ["git-vendored", "lua54", "lua-vendored"]
