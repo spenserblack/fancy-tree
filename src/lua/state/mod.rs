@@ -36,7 +36,7 @@ impl<'git> State<'git> {
     {
         // HACK We can't build out the git API statically (like we can with the path
         // API) because of lifetimes.
-        // HACK Both git and git API must exist, so we can use a shortcut either don't.
+        // HACK Both git and git API must exist, so we can use a shortcut if neither exist.
         let Some(git) = self.git else { return f() };
         let Some(git_api) = self.git_api()? else { return f() };
 
