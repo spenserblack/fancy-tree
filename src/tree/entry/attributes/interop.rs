@@ -12,7 +12,7 @@ pub fn has_hidden_attribute(_metadata: &Metadata) -> bool {
 /// Checks if the file has the hidden attribute.
 #[cfg(windows)]
 pub fn has_hidden_attribute(metadata: &Metadata) -> bool {
-    use std::os::windows::MetadataExt;
+    use std::os::windows::fs::MetadataExt;
 
     // NOTE See https://learn.microsoft.com/en-us/windows/win32/fileio/file-attribute-constants
     const FILE_ATTRIBUTE_HIDDEN: u32 = 0x00000002;
