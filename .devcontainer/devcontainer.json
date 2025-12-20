@@ -14,5 +14,6 @@
       ]
     }
   },
+  "onCreateCommand": "../scripts/setup-git.sh",
   "remoteUser": "vscode"
 }
