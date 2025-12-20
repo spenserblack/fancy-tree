@@ -1,5 +1,7 @@
 //! Module for helpers for git statuses.
 
+use mlua::{IntoLua, Lua};
+
 /// The tracked git status.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Tracked(Status);
@@ -82,6 +84,21 @@ impl Status {
             Status::Removed => "-",
             Status::Renamed => "R",
         }
+    }
+}
+
+impl IntoLua for Status {
+    fn into_lua(self, lua: &Lua) -> mlua::Result<mlua::Value> {
+        use Status::*;
+
+        let s = match self {
+            Added => "added",
+            Modified => "modified",
+            Removed => "removed",
+            Renamed => "renamed",
+        };
+
+        s.into_lua(lua)
     }
 }
 
