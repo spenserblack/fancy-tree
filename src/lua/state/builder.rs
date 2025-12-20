@@ -3,7 +3,6 @@ use super::State;
 use crate::git::Git;
 use crate::lua::api;
 use mlua::Lua;
-use std::ffi::OsString;
 
 /// Builds the Lua state.
 #[derive(Default)]

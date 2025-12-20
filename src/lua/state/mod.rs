@@ -1,10 +1,8 @@
 //! Module for creating a Lua state object for the application.
-use super::api;
 use crate::git::Git;
 pub use builder::Builder;
 use mlua::Lua;
 use std::ffi::OsString;
-use std::path::Path;
 
 mod builder;
 
@@ -38,7 +36,9 @@ impl<'git> State<'git> {
         // API) because of lifetimes.
         // HACK Both git and git API must exist, so we can use a shortcut if neither exist.
         let Some(git) = self.git else { return f() };
-        let Some(git_api) = self.git_api()? else { return f() };
+        let Some(git_api) = self.git_api()? else {
+            return f();
+        };
 
         self.inner.scope(|scope| {
             let is_ignored = scope.create_function(|_lua, path: OsString| {

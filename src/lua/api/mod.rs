@@ -21,10 +21,7 @@ impl Builder {
     /// Instructs the builder to add the `.path` namespace that provides path utilities.
     #[must_use]
     pub fn with_path(self) -> Self {
-        Self {
-            add_path_api: true,
-            ..self
-        }
+        Self { add_path_api: true }
     }
 
     /// Builds the API table.

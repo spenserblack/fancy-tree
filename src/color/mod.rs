@@ -67,8 +67,7 @@ impl Color {
         debug_assert!(
             Self::ANSI_NAME_MAP
                 .into_iter()
-                .find(|(_, color)| *color == ansi_colors)
-                .is_some()
+                .any(|(_, color)| color == ansi_colors)
         );
 
         Self::ANSI_NAME_MAP

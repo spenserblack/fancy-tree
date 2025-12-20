@@ -1,11 +1,7 @@
 //! Provides the utility for generating a tree.
 use crate::color::{Color, ColorChoice};
 use crate::config;
-use crate::git::{
-    self, Git,
-    status::{self, Status},
-};
-use crate::tree::entry::attributes;
+use crate::git::{Git, status::Status};
 pub use builder::Builder;
 pub use charset::Charset;
 pub use entry::Entry;
@@ -222,8 +218,7 @@ where
         let is_hidden = entry.is_hidden()
             || self
                 .git
-                .map(|git| git.is_ignored(path).ok())
-                .flatten()
+                .and_then(|git| git.is_ignored(path).ok())
                 .unwrap_or(false);
         self.config
             .as_ref()
@@ -417,9 +412,7 @@ where
     /// Strips the root path prefix, which is necessary for git tools.
     fn strip_path_prefix<'path>(&self, path: &'path Path) -> &'path Path {
         let root = self.root.as_ref();
-        let path = path
-            .strip_prefix(root)
-            .expect("Should be able to strip the root path");
-        path
+        path.strip_prefix(root)
+            .expect("Should be able to strip the root path")
     }
 }
