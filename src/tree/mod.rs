@@ -379,7 +379,7 @@ where
             .as_ref()
             .and_then(|config| {
                 config
-                    .for_untracked_git_status(Some(status), default_color)
+                    .for_untracked_git_status(status, default_color)
                     .expect("Config should return a valid color")
             })
             .or(default_color)
@@ -408,7 +408,7 @@ where
             .as_ref()
             .and_then(|config| {
                 config
-                    .for_tracked_git_status(Some(status), default_color)
+                    .for_tracked_git_status(status, default_color)
                     .expect("Config should return a valid color")
             })
             .or(default_color)

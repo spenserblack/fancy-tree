@@ -32,12 +32,12 @@ impl Colors {
     }
 
     /// Get the color for an untracked file's status.
-    pub fn for_untracked_git_status(&self, status: Option<Status>, default_choice: Option<Color>) -> mlua::Result<Option<Color>> {
+    pub fn for_untracked_git_status(&self, status: Status, default_choice: Option<Color>) -> mlua::Result<Option<Color>> {
         self.git_statuses.untracked.call((status, default_choice))
     }
 
     /// Get the color for an tracked file's status.
-    pub fn for_tracked_git_status(&self, status: Option<Status>, default_choice: Option<Color>) -> mlua::Result<Option<Color>> {
+    pub fn for_tracked_git_status(&self, status: Status, default_choice: Option<Color>) -> mlua::Result<Option<Color>> {
         self.git_statuses.tracked.call((status, default_choice))
     }
 }
