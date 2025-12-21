@@ -42,30 +42,34 @@ impl ConfigDir {
 
     /// Loads the main configuration file.
     #[inline]
-    pub fn load_main(&self, lua: &Lua) -> mlua::Result<Main> {
+    pub fn load_main(&self, lua: &Lua) -> mlua::Result<Option<Main>> {
         self.load_file(lua)
     }
 
     /// Loads the icon configuration file.
     #[inline]
-    pub fn load_icons(&self, lua: &Lua) -> mlua::Result<Icons> {
+    pub fn load_icons(&self, lua: &Lua) -> mlua::Result<Option<Icons>> {
         self.load_file(lua)
     }
 
     /// Loads the colors configuration file.
     #[inline]
-    pub fn load_colors(&self, lua: &Lua) -> mlua::Result<Colors> {
+    pub fn load_colors(&self, lua: &Lua) -> mlua::Result<Option<Colors>> {
         self.load_file(lua)
     }
 
     /// Loads a `.lua` file from the configuration directory.
-    fn load_file<T>(&self, lua: &Lua) -> mlua::Result<T>
+    fn load_file<T>(&self, lua: &Lua) -> mlua::Result<Option<T>>
     where
         T: ConfigFile + FromLuaMulti,
     {
         let path = self.path().join(T::FILENAME);
-        let chunk = lua.load(path);
-        chunk.call::<T>(())
+        path.exists()
+            .then(|| {
+                let chunk = lua.load(path);
+                chunk.call::<T>(())
+            })
+            .transpose()
     }
 
     /// Gets the config directory for the project.

@@ -76,12 +76,18 @@ impl Cli {
 
         let color_choice = self
             .color_choice
-            .or_else(|| config.color_choice())
+            .or_else(|| config.as_ref().and_then(|config| config.color_choice()))
             .unwrap_or_default();
-        let mut builder = tree::Builder::new(&self.path, color_choice)
-            .config(config)
-            .icons(icons)
-            .colors(colors);
+        let mut builder = tree::Builder::new(&self.path, color_choice);
+        if let Some(config) = config {
+            builder = builder.config(config);
+        }
+        if let Some(icons) = icons {
+            builder = builder.icons(icons);
+        }
+        if let Some(colors) = colors {
+            builder = builder.colors(colors);
+        }
         if let Some(ref git) = git {
             builder = builder.git(git);
         }
