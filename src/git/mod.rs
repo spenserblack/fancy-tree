@@ -1,10 +1,11 @@
 //! Module for git integration.
 use git2::{Repository, StatusOptions};
 use std::collections::HashMap;
-use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
+use util::StatusEntryExt;
 
 pub mod status;
+mod util;
 
 /// The main struct for git integration.
 pub struct Git {
@@ -50,15 +51,7 @@ impl Git {
         let statuses = repository
             .statuses(Some(&mut options))?
             .iter()
-            .map(|entry| {
-                let path = entry.path_bytes();
-                // SAFETY:
-                // - Should always be a path from the local filesystem
-                let path = unsafe { OsStr::from_encoded_bytes_unchecked(path) };
-                let path = Path::new(path).to_path_buf();
-                let status = entry.status();
-                (path, status)
-            })
+            .filter_map(|entry| entry.path_buf().map(|path| (path, entry.status())))
             .collect::<HashMap<_, _>>();
         Ok(statuses)
     }
