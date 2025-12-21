@@ -87,7 +87,7 @@ where
             // HACK We can't read the first entry for some reason, so we'll just print
             //      it and exit.
             let path = self.root.as_ref();
-            Self::write_path(writer, path, true)?;
+            Self::write_path(writer, path)?;
             return writeln!(writer);
         };
         self.write_depth(writer, entry, 0)?;
@@ -167,28 +167,27 @@ where
         // NOTE Padding for the icons
         write!(writer, " ")?;
 
-        Self::write_path(writer, path, full_name)
+        let path = if full_name {
+            path.as_os_str()
+        } else {
+            // NOTE The only time the path shouldn't have a file name is at the top
+            //      level, which could be a path like "." or "..". At the top level
+            //      call, `full_name` should always receive `true`.
+            path.file_name()
+                .expect("A directory entry should always have a file name")
+        };
+
+        Self::write_path(writer, path)
     }
 
     /// Writes a path's name.
-    fn write_path<W, P2>(writer: &mut W, path: P2, full_name: bool) -> io::Result<()>
+    fn write_path<W, P2>(writer: &mut W, path: P2) -> io::Result<()>
     where
         W: Write,
         P2: AsRef<Path>,
     {
         let path = path.as_ref();
-
-        if full_name {
-            writer.write_all(path.as_os_str().as_encoded_bytes())
-        } else {
-            // NOTE The only time the path shouldn't have a file name is at the top
-            //      level, which could be a path like "." or "..". At the top level
-            //      call, `full_name` should always receive `true`.
-            let path = path
-                .file_name()
-                .expect("A directory entry should always have a file name");
-            writer.write_all(path.as_encoded_bytes())
-        }
+        writer.write_all(path.as_os_str().as_encoded_bytes())
     }
 
     /// Writes indentation.
