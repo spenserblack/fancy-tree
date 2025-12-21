@@ -2,66 +2,6 @@
 
 use mlua::{IntoLua, Lua};
 
-/// The tracked git status.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Tracked(Status);
-
-impl Tracked {
-    /// Gets the index status from the git2 status.
-    pub fn from_git2(status: git2::Status) -> Option<Self> {
-        use Status::*;
-
-        let kind = if status.is_index_new() {
-            Added
-        } else if status.is_index_modified() {
-            Modified
-        } else if status.is_index_deleted() {
-            Removed
-        } else if status.is_index_renamed() {
-            Renamed
-        } else {
-            return None;
-        };
-
-        Some(Self(kind))
-    }
-
-    /// Gets the backing status enum.
-    pub fn status(&self) -> Status {
-        self.0
-    }
-}
-
-/// The untracked git status.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Untracked(Status);
-
-impl Untracked {
-    /// Gets the worktree status from the git2 status.
-    pub fn from_git2(status: git2::Status) -> Option<Self> {
-        use Status::*;
-
-        let kind = if status.is_wt_new() {
-            Added
-        } else if status.is_wt_modified() {
-            Modified
-        } else if status.is_wt_deleted() {
-            Removed
-        } else if status.is_wt_renamed() {
-            Renamed
-        } else {
-            return None;
-        };
-
-        Some(Self(kind))
-    }
-
-    /// Gets the backing status enum.
-    pub fn status(&self) -> Status {
-        self.0
-    }
-}
-
 /// Git statuses (tracked/indexed or untracked/worktree) for a file.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Status {
@@ -102,6 +42,60 @@ impl IntoLua for Status {
     }
 }
 
+/// Trait to generalize getting a git status.
+pub trait StatusGetter {
+    /// Gets the status from a git2 status.
+    fn from_git2(status: git2::Status) -> Option<Status>;
+}
+
+/// The tracked git status.
+pub struct Tracked;
+
+impl StatusGetter for Tracked {
+    /// Gets the index status from the git2 status.
+    fn from_git2(status: git2::Status) -> Option<Status> {
+        use Status::*;
+
+        let status = if status.is_index_new() {
+            Added
+        } else if status.is_index_modified() {
+            Modified
+        } else if status.is_index_deleted() {
+            Removed
+        } else if status.is_index_renamed() {
+            Renamed
+        } else {
+            return None;
+        };
+
+        Some(status)
+    }
+}
+
+/// The untracked git status.
+pub struct Untracked;
+
+impl StatusGetter for Untracked {
+    /// Gets the worktree status from the git2 status.
+    fn from_git2(status: git2::Status) -> Option<Status> {
+        use Status::*;
+
+        let status = if status.is_wt_new() {
+            Added
+        } else if status.is_wt_modified() {
+            Modified
+        } else if status.is_wt_deleted() {
+            Removed
+        } else if status.is_wt_renamed() {
+            Renamed
+        } else {
+            return None;
+        };
+
+        Some(status)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -116,7 +110,6 @@ mod tests {
     #[case(Libgit::INDEX_RENAMED, Some(Renamed))]
     #[case(Libgit::WT_NEW, None)]
     fn test_tracked_from_git2(#[case] libgit: Libgit, #[case] expected: Option<Status>) {
-        let expected = expected.map(Tracked);
         assert_eq!(expected, Tracked::from_git2(libgit));
     }
 
@@ -127,7 +120,6 @@ mod tests {
     #[case(Libgit::WT_RENAMED, Some(Renamed))]
     #[case(Libgit::INDEX_NEW, None)]
     fn test_untracked_from_git2(#[case] libgit: Libgit, #[case] expected: Option<Status>) {
-        let expected = expected.map(Untracked);
         assert_eq!(expected, Untracked::from_git2(libgit));
     }
 }

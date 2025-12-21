@@ -1,5 +1,6 @@
 //! Module for git integration.
 use git2::{Repository, StatusOptions};
+use status::StatusGetter;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use util::StatusEntryExt;
@@ -67,20 +68,13 @@ impl Git {
         options
     }
 
-    /// Gets the tracked status for a file.
-    pub fn tracked_status<P>(&self, path: P) -> Result<Option<status::Tracked>, git2::Error>
+    /// Gets the status for a file.
+    pub fn status<S, P>(&self, path: P) -> Result<Option<status::Status>, git2::Error>
     where
+        S: StatusGetter,
         P: AsRef<Path>,
     {
-        self.git2_status(path).map(status::Tracked::from_git2)
-    }
-
-    /// Gets the untracked status for a file.
-    pub fn untracked_status<P>(&self, path: P) -> Result<Option<status::Untracked>, git2::Error>
-    where
-        P: AsRef<Path>,
-    {
-        self.git2_status(path).map(status::Untracked::from_git2)
+        self.git2_status(path).map(S::from_git2)
     }
 
     /// Gets the original gt2 status for a file.

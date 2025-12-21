@@ -1,6 +1,7 @@
 //! Provides the utility for generating a tree.
 use crate::color::{Color, ColorChoice};
 use crate::config;
+use crate::git::status;
 use crate::git::{Git, status::Status};
 pub use builder::Builder;
 pub use charset::Charset;
@@ -343,21 +344,13 @@ where
             .expect("Should be able to resolve path relative to git root");
 
         // TODO This is repetitive. Refactor.
-        let untracked_status = git
-            .untracked_status(&path)
-            .ok()
-            .flatten()
-            .map(|untracked| untracked.status());
+        let untracked_status = git.status::<status::Untracked, _>(&path).ok().flatten();
         let untracked_color =
             untracked_status.and_then(|status| self.get_untracked_git_status_color(status));
         let untracked_status = untracked_status
             .map(|status| status.as_str())
             .unwrap_or(NO_STATUS);
-        let tracked_status = git
-            .tracked_status(path)
-            .ok()
-            .flatten()
-            .map(|tracked| tracked.status());
+        let tracked_status = git.status::<status::Tracked, _>(path).ok().flatten();
         let tracked_color =
             tracked_status.and_then(|status| self.get_tracked_git_status_color(status));
         let tracked_status = tracked_status
