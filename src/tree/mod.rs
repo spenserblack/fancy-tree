@@ -334,8 +334,6 @@ where
     where
         W: Write,
     {
-        const NO_STATUS: &str = " ";
-
         let Some(git) = self.git else { return Ok(()) };
 
         // HACK cached status keys don't have a ./ prefix and git2 apparently doesn't expect it.
@@ -343,83 +341,28 @@ where
             .clean_path_for_git2(path)
             .expect("Should be able to resolve path relative to git root");
 
-        // TODO This is repetitive. Refactor.
-        let untracked_status = git.status::<status::Untracked, _>(&path).ok().flatten();
-        let untracked_color =
-            untracked_status.and_then(|status| self.get_untracked_git_status_color(status));
-        let untracked_status = untracked_status
-            .map(|status| status.as_str())
-            .unwrap_or(NO_STATUS);
-        let tracked_status = git.status::<status::Tracked, _>(path).ok().flatten();
-        let tracked_color =
-            tracked_status.and_then(|status| self.get_tracked_git_status_color(status));
-        let tracked_status = tracked_status
-            .map(|status| status.as_str())
-            .unwrap_or(NO_STATUS);
-
-        self.color_choice
-            .write_to(writer, untracked_status, untracked_color, None)?;
-        self.color_choice
-            .write_to(writer, tracked_status, tracked_color, None)?;
+        self.write_status::<status::Untracked, _, _>(writer, git, &path)?;
+        self.write_status::<status::Tracked, _, _>(writer, git, path)?;
         Ok(())
     }
 
-    /// Gets the tracked git status color.
-    fn get_tracked_git_status_color(&self, status: Status) -> Option<Color> {
-        use Status::*;
-        use owo_colors::AnsiColors::{self, *};
+    /// Writes a colorized git status.
+    fn write_status<S, W, P2>(&self, writer: &mut W, git: &Git, path: P2) -> io::Result<()>
+    where
+        S: status::StatusGetter + StatusColor,
+        W: Write,
+        P2: AsRef<Path>,
+    {
+        const NO_STATUS: &str = " ";
 
-        const DEFAULT_ADDED: AnsiColors = Green;
-        const DEFAULT_MODIFIED: AnsiColors = Yellow;
-        const DEFAULT_REMOVED: AnsiColors = Red;
-        const DEFAULT_RENAMED: AnsiColors = Cyan;
-
-        let default_color = match status {
-            Added => DEFAULT_ADDED,
-            Modified => DEFAULT_MODIFIED,
-            Removed => DEFAULT_REMOVED,
-            Renamed => DEFAULT_RENAMED,
-        };
-        let default_color = Color::Ansi(default_color);
-        let default_color = Some(default_color);
-
-        self.colors
-            .as_ref()
-            .and_then(|config| {
-                config
-                    .for_untracked_git_status(status, default_color)
-                    .expect("Config should return a valid color")
+        let status = git.status::<S, _>(path).ok().flatten();
+        let color = status.and_then(|status| {
+            self.colors.as_ref().and_then(|config| {
+                S::get_git_status_color(status, config).expect("Config should return a valid color")
             })
-            .or(default_color)
-    }
-
-    /// Gets the untracked git status color.
-    fn get_untracked_git_status_color(&self, status: Status) -> Option<Color> {
-        use Status::*;
-        use owo_colors::AnsiColors::{self, *};
-
-        const DEFAULT_ADDED: AnsiColors = BrightGreen;
-        const DEFAULT_MODIFIED: AnsiColors = BrightYellow;
-        const DEFAULT_REMOVED: AnsiColors = BrightRed;
-        const DEFAULT_RENAMED: AnsiColors = BrightCyan;
-
-        let default_color = match status {
-            Added => DEFAULT_ADDED,
-            Modified => DEFAULT_MODIFIED,
-            Removed => DEFAULT_REMOVED,
-            Renamed => DEFAULT_RENAMED,
-        };
-        let default_color = Color::Ansi(default_color);
-        let default_color = Some(default_color);
-
-        self.colors
-            .as_ref()
-            .and_then(|config| {
-                config
-                    .for_tracked_git_status(status, default_color)
-                    .expect("Config should return a valid color")
-            })
-            .or(default_color)
+        });
+        let status = status.map(|status| status.as_str()).unwrap_or(NO_STATUS);
+        self.color_choice.write_to(writer, status, color, None)
     }
 
     /// Strips the root path prefix, which is necessary for git tools.
@@ -436,5 +379,70 @@ where
             .strip_prefix(git_root)
             .expect("Path should have the git root as a prefix");
         Some(path.to_path_buf())
+    }
+}
+
+/// Private trait to generalize getting the color for a status.
+trait StatusColor {
+    /// Default color for added status.
+    const DEFAULT_ADDED: AnsiColors;
+    /// Default color for modified status.
+    const DEFAULT_MODIFIED: AnsiColors;
+    /// Default color for removed status.
+    const DEFAULT_REMOVED: AnsiColors;
+    /// Default color for renamed status.
+    const DEFAULT_RENAMED: AnsiColors;
+
+    /// Gets the default color for a status.
+    fn get_default_color(status: Status) -> Option<Color> {
+        use Status::*;
+
+        let default_color = match status {
+            Added => Self::DEFAULT_ADDED,
+            Modified => Self::DEFAULT_MODIFIED,
+            Removed => Self::DEFAULT_REMOVED,
+            Renamed => Self::DEFAULT_RENAMED,
+        };
+
+        let default_color = Color::Ansi(default_color);
+        Some(default_color)
+    }
+
+    /// Gets the color for a git status.
+    fn get_git_status_color(
+        status: Status,
+        color_config: &config::Colors,
+    ) -> mlua::Result<Option<Color>>;
+}
+
+impl StatusColor for status::Tracked {
+    const DEFAULT_ADDED: AnsiColors = AnsiColors::Green;
+    const DEFAULT_MODIFIED: AnsiColors = AnsiColors::Yellow;
+    const DEFAULT_REMOVED: AnsiColors = AnsiColors::Red;
+    const DEFAULT_RENAMED: AnsiColors = AnsiColors::Cyan;
+
+    /// Gets the tracked git status color.
+    fn get_git_status_color(
+        status: Status,
+        color_config: &config::Colors,
+    ) -> mlua::Result<Option<Color>> {
+        let default_choice = Self::get_default_color(status);
+        color_config.for_tracked_git_status(status, default_choice)
+    }
+}
+
+impl StatusColor for status::Untracked {
+    const DEFAULT_ADDED: AnsiColors = AnsiColors::BrightGreen;
+    const DEFAULT_MODIFIED: AnsiColors = AnsiColors::BrightYellow;
+    const DEFAULT_REMOVED: AnsiColors = AnsiColors::BrightRed;
+    const DEFAULT_RENAMED: AnsiColors = AnsiColors::BrightCyan;
+
+    /// Gets the untracked git status color.
+    fn get_git_status_color(
+        status: Status,
+        color_config: &config::Colors,
+    ) -> mlua::Result<Option<Color>> {
+        let default_choice = Self::get_default_color(status);
+        color_config.for_untracked_git_status(status, default_choice)
     }
 }
