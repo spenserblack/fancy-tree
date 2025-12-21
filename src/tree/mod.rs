@@ -16,7 +16,7 @@ mod builder;
 mod charset;
 pub mod entry;
 
-// Generates a tree.
+/// Generates a tree.
 pub struct Tree<'git, 'charset, P: AsRef<Path>> {
     /// The root path to start from.
     root: P,
