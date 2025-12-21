@@ -10,7 +10,7 @@ use owo_colors::AnsiColors;
 use owo_colors::OwoColorize;
 use std::fmt::Display;
 use std::io::{self, Write, stdout};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 mod builder;
 mod charset;
@@ -233,11 +233,15 @@ where
     where
         P2: AsRef<Path>,
     {
-        // HACK This function doesn't expect a `./` prefix. It seems to return `true`
-        //      when it's present???
-        let path = self.strip_path_prefix(path.as_ref());
         self.git
-            .and_then(|git| git.is_ignored(path).ok())
+            .and_then(|git| {
+                // HACK This function doesn't expect a `./` prefix. It seems to return
+                //      `true` when it's present???
+                let path = self
+                    .clean_path_for_git2(path)
+                    .expect("Should be able to resolve path relative to git root");
+                git.is_ignored(path).ok()
+            })
             .unwrap_or(false)
     }
 
@@ -334,11 +338,13 @@ where
         let Some(git) = self.git else { return Ok(()) };
 
         // HACK cached status keys don't have a ./ prefix and git2 apparently doesn't expect it.
-        let path = self.strip_path_prefix(path);
+        let path = self
+            .clean_path_for_git2(path)
+            .expect("Should be able to resolve path relative to git root");
 
         // TODO This is repetitive. Refactor.
         let untracked_status = git
-            .untracked_status(path)
+            .untracked_status(&path)
             .ok()
             .flatten()
             .map(|untracked| untracked.status());
@@ -424,9 +430,18 @@ where
     }
 
     /// Strips the root path prefix, which is necessary for git tools.
-    fn strip_path_prefix<'path>(&self, path: &'path Path) -> &'path Path {
-        let root = self.root.as_ref();
-        path.strip_prefix(root)
-            .expect("Should be able to strip the root path")
+    fn clean_path_for_git2<P2>(&self, path: P2) -> Option<PathBuf>
+    where
+        P2: AsRef<Path>,
+    {
+        let git_root = self.git.and_then(|git| git.root_dir())?;
+        let path = path.as_ref();
+        let path = path
+            .canonicalize()
+            .expect("Path should exist and non-final components should be directories");
+        let path = path
+            .strip_prefix(git_root)
+            .expect("Path should have the git root as a prefix");
+        Some(path.to_path_buf())
     }
 }

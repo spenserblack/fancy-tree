@@ -125,4 +125,12 @@ impl Git {
     {
         self.repository.is_path_ignored(path)
     }
+
+    /// Gets the root directory of the git repository's working tree.
+    ///
+    /// Returns `None` for bare repositories.
+    #[inline]
+    pub fn root_dir(&self) -> Option<&Path> {
+        self.repository.workdir()
+    }
 }
