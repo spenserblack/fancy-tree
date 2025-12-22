@@ -64,7 +64,9 @@ impl Git {
             .include_untracked(true)
             .include_unmodified(true)
             .renames_head_to_index(true)
-            .renames_index_to_workdir(true);
+            .renames_index_to_workdir(true)
+            // NOTE We'll be using literal paths, not patterns
+            .disable_pathspec_match(true);
         options
     }
 
