@@ -17,6 +17,7 @@ exclude = [
     "/scripts/",
 ]
 rust-version = "1.92"
+categories = ["command-line-utilities", "filesystem", "visualization"]
 keywords = ["cli", "command-line", "git", "tree"]
 
 [features]
