@@ -357,9 +357,13 @@ where
 
         let status = git.status::<S, _>(path).ok().flatten();
         let color = status.and_then(|status| {
-            self.colors.as_ref().and_then(|config| {
-                S::get_git_status_color(status, config).expect("Config should return a valid color")
-            })
+            self.colors.as_ref().map_or_else(
+                || S::get_default_color(status),
+                |config| {
+                    S::get_git_status_color(status, config)
+                        .expect("Config should return a valid color")
+                },
+            )
         });
         let status = status.map(|status| status.as_str()).unwrap_or(NO_STATUS);
         self.color_choice.write_to(writer, status, color, None)
