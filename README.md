@@ -5,6 +5,10 @@
 
 A `tree` alternative with git support, code language detection, and nerd fonts.
 
+## Installation
+
+View [`INSTALL.md`](./INSTALL.md)
+
 ## Features
 
 ### Nerd Font icons with language detection

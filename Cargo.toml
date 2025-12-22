@@ -13,6 +13,7 @@ exclude = [
     ".git-blame-ignore-revs",
     ".luarc.lua",
     ".vscode/",
+    "INSTALL.md",
     "/lua/",
     "/scripts/",
 ]
