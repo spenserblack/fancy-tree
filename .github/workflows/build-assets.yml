@@ -1,0 +1,51 @@
+name: Build Assets
+on:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-assets:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os:
+          - macOS-latest
+          - ubuntu-latest
+          - windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - run: mkdir dist
+      - name: Build
+        run: cargo build --release
+      - name: Prepare for upload (Unix)
+        if: ${{ runner.os != 'Windows' }}
+        env:
+          BUILD_TARGET: ${{ runner.os }}-${{ runner.arch }}
+        run: |
+          tar -C target/release/ -czvf "fancy-tree-$BUILD_TARGET.tar.gz" fancy-tree
+          mv "fancy-tree-$BUILD_TARGET.tar.gz" dist/
+      - name: Prepare for upload (Windows)
+        if: ${{ runner.os == 'Windows' }}
+        env:
+          BUILD_TARGET: ${{ runner.os }}-${{ runner.arch }}
+        shell: bash
+        # NOTE -mx9 is max compression, -tzip sets type to zip
+        run: |
+          mv target/release/fancy-tree.exe fancy-tree.exe
+          7z a -mx9 -tzip "fancy-tree-$BUILD_TARGET.zip" fancy-tree.exe
+          mv "fancy-tree-$BUILD_TARGET.zip" dist/
+
+      - uses: actions/upload-artifact@v6
+        id: upload-artifact
+        with:
+          name: ${{ runner.os }}-${{ runner.arch }}
+          path: dist/*
+          if-no-files-found: error
+
+      - run: echo "Uploaded artifact to ${{ steps.upload-artifact.outputs.artifact-url }}"
