@@ -2,6 +2,7 @@
 name = "fancy-tree"
 version = "0.1.0"
 description = "A `tree` alternative with git support, code language detection, and nerd fonts."
+license = "MIT OR Apache-2.0"
 repository = "https://github.com/spenserblack/fancy-tree"
 edition = "2024"
 exclude = [
