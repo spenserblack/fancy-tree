@@ -1,5 +1,8 @@
 # fancy-tree
 
+[![Crates.io Version](https://img.shields.io/crates/v/fancy-tree)](https://crates.io/crates/fancy-tree)
+[![CI](https://github.com/spenserblack/fancy-tree/actions/workflows/ci.yml/badge.svg)](https://github.com/spenserblack/fancy-tree/actions/workflows/ci.yml)
+
 A `tree` alternative with git support, code language detection, and nerd fonts.
 
 ## Features
