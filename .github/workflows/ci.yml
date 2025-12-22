@@ -21,9 +21,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        id: setup-rust
       - name: Cache
         uses: actions/cache@v5
         with:
@@ -48,9 +45,6 @@ jobs:
       - build
     steps:
       - uses: actions/checkout@v6
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        id: setup-rust
       - name: Cache
         uses: actions/cache@v5
         with:
