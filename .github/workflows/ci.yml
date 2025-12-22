@@ -61,3 +61,11 @@ jobs:
 
       - name: Lint
         run: cargo clippy -- -D warnings
+
+  docker:
+    name: Check Docker build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build Docker Image
+        run: docker build -t fancy-tree .
