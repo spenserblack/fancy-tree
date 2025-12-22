@@ -17,6 +17,7 @@ exclude = [
     "/scripts/",
 ]
 rust-version = "1.92"
+keywords = ["cli", "command-line", "git", "tree"]
 
 [features]
 default = ["git-vendored", "lua54", "lua-vendored"]
