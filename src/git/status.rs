@@ -56,14 +56,14 @@ impl StatusGetter for Tracked {
     fn from_git2(status: git2::Status) -> Option<Status> {
         use Status::*;
 
-        let status = if status.is_index_new() {
+        let status = if status.is_index_renamed() {
+            Renamed
+        } else if status.is_index_new() {
             Added
         } else if status.is_index_modified() {
             Modified
         } else if status.is_index_deleted() {
             Removed
-        } else if status.is_index_renamed() {
-            Renamed
         } else {
             return None;
         };
@@ -80,14 +80,14 @@ impl StatusGetter for Untracked {
     fn from_git2(status: git2::Status) -> Option<Status> {
         use Status::*;
 
-        let status = if status.is_wt_new() {
+        let status = if status.is_wt_renamed() {
+            Renamed
+        } else if status.is_wt_new() {
             Added
         } else if status.is_wt_modified() {
             Modified
         } else if status.is_wt_deleted() {
             Removed
-        } else if status.is_wt_renamed() {
-            Renamed
         } else {
             return None;
         };
@@ -108,6 +108,7 @@ mod tests {
     #[case(Libgit::INDEX_MODIFIED, Some(Modified))]
     #[case(Libgit::INDEX_DELETED, Some(Removed))]
     #[case(Libgit::INDEX_RENAMED, Some(Renamed))]
+    #[case(Libgit::INDEX_RENAMED | Libgit::INDEX_NEW, Some(Renamed))]
     #[case(Libgit::WT_NEW, None)]
     fn test_tracked_from_git2(#[case] libgit: Libgit, #[case] expected: Option<Status>) {
         assert_eq!(expected, Tracked::from_git2(libgit));
@@ -118,6 +119,7 @@ mod tests {
     #[case(Libgit::WT_MODIFIED, Some(Modified))]
     #[case(Libgit::WT_DELETED, Some(Removed))]
     #[case(Libgit::WT_RENAMED, Some(Renamed))]
+    #[case(Libgit::WT_RENAMED | Libgit::WT_NEW, Some(Renamed))]
     #[case(Libgit::INDEX_NEW, None)]
     fn test_untracked_from_git2(#[case] libgit: Libgit, #[case] expected: Option<Status>) {
         assert_eq!(expected, Untracked::from_git2(libgit));
