@@ -19,7 +19,7 @@ pub fn has_hidden_attribute(metadata: &Metadata) -> bool {
 
     let file_attributes = metadata.file_attributes();
     // TODO Test this
-    return (file_attributes & FILE_ATTRIBUTE_HIDDEN) != 0;
+    (file_attributes & FILE_ATTRIBUTE_HIDDEN) != 0
 }
 
 /// Checks if the file has the executable mod set.
