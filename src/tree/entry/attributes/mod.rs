@@ -1,7 +1,7 @@
 //! Provides utilities for file objects.
 pub use directory::DirectoryAttributes;
 pub use file::FileAttributes;
-use std::fs::{File, Metadata};
+use std::fs::{self, File, Metadata};
 use std::io;
 use std::path::Path;
 pub use symlink::SymlinkAttributes;
@@ -28,8 +28,7 @@ impl Attributes {
         P: AsRef<Path>,
     {
         let path = path.as_ref();
-        let file = File::open(path)?;
-        let metadata = file.metadata()?;
+        let metadata = fs::metadata(path)?;
         let file_type = metadata.file_type();
 
         if file_type.is_symlink() {
@@ -37,6 +36,7 @@ impl Attributes {
         } else if file_type.is_dir() {
             Ok(Self::new_directory(metadata))
         } else if file_type.is_file() {
+            let file = File::open(path)?;
             Self::new_file(path, file, metadata)
         } else {
             // NOTE Just to make all file type checks a bit more explicit

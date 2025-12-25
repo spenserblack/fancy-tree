@@ -375,6 +375,15 @@ where
         P2: AsRef<Path>,
     {
         let git_root = self.git.and_then(|git| git.root_dir())?;
+
+        // HACK Git root seems to have `/` separators, which breaks path cleanup on
+        //      Windows. This cleans up the git root so it can be used with
+        //      strip_prefix.
+        #[cfg(windows)]
+        let git_root = git_root
+            .canonicalize()
+            .expect("Git root should exist and non-final components should be directories");
+
         let path = path.as_ref();
         let path = path
             .canonicalize()
