@@ -25,3 +25,9 @@ Visit the [latest release](https://github.com/spenserblack/fancy-tree/releases/l
 ```shell
 cargo install --locked fancy-tree
 ```
+
+## With `nix`
+
+```shell
+nix --extra-experimental-features nix-command --extra-experimental-features flakes build
+```
