@@ -46,14 +46,19 @@ impl Cli {
 
     /// Runs the CLI.
     pub fn run(&self) -> crate::Result {
-        if self.should_edit_file() {
-            self.edit_file()?;
-            return Ok(());
+        // Early return for edit mode
+        if let Some(edit_config) = self.edit_config {
+            return self.edit_file(edit_config);
         }
 
+        self.run_tree()
+    }
+
+    /// Runs the main tree functionality.
+    fn run_tree(&self) -> crate::Result {
         let git = Git::new(&self.path).expect("Should be able to read the git repository");
 
-        // NOTE The Lua state must live as long as the configuration values.
+        // Build Lua state with git if available
         let lua_state = {
             let mut builder = lua::state::Builder::new();
             if let Some(ref git) = git {
@@ -62,77 +67,67 @@ impl Cli {
             builder.build().expect("The lua state should be valid")
         };
 
-        // TODO Skip loading the config instead of panicking.
+        // Load configurations with error handling
         let config_dir = ConfigDir::new().expect("A config dir should be available");
-        let config = config_dir
-            .load_main(lua_state.to_inner())
+        
+        // Use lua_state.to_inner() once and reuse
+        let lua_inner = lua_state.to_inner();
+        let config = config_dir.load_main(lua_inner)
             .expect("The configuration should be valid");
-        let icons = config_dir
-            .load_icons(lua_state.to_inner())
+        let icons = config_dir.load_icons(lua_inner)
             .expect("The icon configuration should be valid");
-        let colors = config_dir
-            .load_colors(lua_state.to_inner())
+        let colors = config_dir.load_colors(lua_inner)
             .expect("The color configuration should be valid");
 
-        let color_choice = self
-            .color_choice
+        // Determine color choice with less nesting
+        let color_choice = self.color_choice
             .or_else(|| config.as_ref().and_then(|config| config.color_choice()))
             .unwrap_or_default();
+
+        // Build tree with method chaining
         let mut builder = tree::Builder::new(&self.path, color_choice);
-        if let Some(config) = config {
-            builder = builder.config(config);
-        }
-        if let Some(icons) = icons {
-            builder = builder.icons(icons);
-        }
-        if let Some(colors) = colors {
-            builder = builder.colors(colors);
-        }
+        
+        // Apply configurations if they exist
+        builder = config.map(|c| builder.config(c)).unwrap_or(builder);
+        builder = icons.map(|i| builder.icons(i)).unwrap_or(builder);
+        builder = colors.map(|c| builder.colors(c)).unwrap_or(builder);
+        
         if let Some(ref git) = git {
             builder = builder.git(git);
         }
+        
         if let Some(level) = self.level {
             builder = builder.max_level(level);
         }
+        
         let tree = builder.build();
 
+        // Execute in git scope
         lua_state.in_git_scope(|| tree.write_to_stdout().map_err(mlua::Error::external))?;
 
         Ok(())
     }
 
-    /// Returns `true` if the user wants to edit a file. Edit prompts should exit early
-    /// without running the main behavior.
-    #[inline]
-    fn should_edit_file(&self) -> bool {
-        self.edit_config.is_some()
-    }
-
     /// Opens an editor for the file the user specified, creating the config directory
     /// if needed.
-    fn edit_file(&self) -> crate::Result {
+    fn edit_file(&self, edit_config: EditConfig) -> crate::Result {
         let config_dir = ConfigDir::new()?;
         fs::create_dir_all(config_dir.path())?;
 
-        let edit_config = self.edit_config.expect("Should have checked if Some");
-
-        let (file_path, contents) = match edit_config {
+        let (file_path, default_contents) = match edit_config {
             EditConfig::Config => (config_dir.main_path(), config::Main::DEFAULT_MODULE),
             EditConfig::Icons => (config_dir.icons_path(), config::Icons::DEFAULT_MODULE),
             EditConfig::Colors => (config_dir.colors_path(), config::Colors::DEFAULT_MODULE),
         };
 
-        // NOTE If we can't check if it exists, we'll be safe and skip overwriting it.
+        // Create file if it doesn't exist
         if !file_path.try_exists().unwrap_or(false) {
-            // NOTE Ignore error, because editing the file is a higher priority than
-            //      writing to it.
-            let _ = fs::write(&file_path, contents);
+            let _ = fs::write(&file_path, default_contents);
         }
 
         println!("Opening `{}`", file_path.display());
 
         let finder = find_editor::Finder::with_extra_environment_variables([Self::EDITOR_ENV_VAR]);
-        /// Should the program wait for the editor to close before continuing?
         const WAIT: bool = true;
         finder.open_editor(file_path, WAIT)?;
 
@@ -143,6 +138,5 @@ impl Cli {
 // Runs the CLI. Can exit early without returning an error. For example, this will exit
 // early if the user passes `-h` as CLI argument.
 pub fn run() -> crate::Result {
-    let cli = Cli::parse();
-    cli.run()
+    Cli::parse().run()
 }
