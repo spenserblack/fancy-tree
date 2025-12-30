@@ -46,7 +46,7 @@ impl Cli {
 
     /// Runs the CLI.
     pub fn run(&self) -> crate::Result {
-        // Early return for edit mode
+        // NOTE Early return for edit mode
         if let Some(edit_config) = self.edit_config {
             return self.edit_file(edit_config);
         }
