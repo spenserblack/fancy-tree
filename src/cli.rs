@@ -84,7 +84,7 @@ impl Cli {
 
         let mut builder = tree::Builder::new(&self.path, color_choice);
         
-        // Apply configurations if they exist
+        // NOTE Apply configurations if they exist
         builder = config.map(|c| builder.config(c)).unwrap_or(builder);
         builder = icons.map(|i| builder.icons(i)).unwrap_or(builder);
         builder = colors.map(|c| builder.colors(c)).unwrap_or(builder);
