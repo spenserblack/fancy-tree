@@ -58,7 +58,7 @@ impl Cli {
     fn run_tree(&self) -> crate::Result {
         let git = Git::new(&self.path).expect("Should be able to read the git repository");
 
-        // Build Lua state with git if available
+        // NOTE The Lua state must live as long as the configuration values.
         let lua_state = {
             let mut builder = lua::state::Builder::new();
             if let Some(ref git) = git {
