@@ -122,6 +122,8 @@ impl Cli {
 
         // Create file if it doesn't exist
         if !file_path.try_exists().unwrap_or(false) {
+            // NOTE Ignore error, because editing the file is a higher priority than
+            //      writing to it.
             let _ = fs::write(&file_path, default_contents);
         }
 
