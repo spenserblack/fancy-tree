@@ -99,7 +99,6 @@ impl Cli {
         
         let tree = builder.build();
 
-        // Execute in git scope
         lua_state.in_git_scope(|| tree.write_to_stdout().map_err(mlua::Error::external))?;
 
         Ok(())
