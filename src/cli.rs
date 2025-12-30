@@ -128,6 +128,7 @@ impl Cli {
         println!("Opening `{}`", file_path.display());
 
         let finder = find_editor::Finder::with_extra_environment_variables([Self::EDITOR_ENV_VAR]);
+        /// Should the program wait for the editor to close before continuing?
         const WAIT: bool = true;
         finder.open_editor(file_path, WAIT)?;
 
