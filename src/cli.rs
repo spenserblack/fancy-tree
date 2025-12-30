@@ -70,7 +70,6 @@ impl Cli {
         // TODO Skip loading the config instead of panicking.
         let config_dir = ConfigDir::new().expect("A config dir should be available");
         
-        // Use lua_state.to_inner() once and reuse
         let lua_inner = lua_state.to_inner();
         let config = config_dir.load_main(lua_inner)
             .expect("The configuration should be valid");
