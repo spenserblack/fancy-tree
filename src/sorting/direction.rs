@@ -1,7 +1,6 @@
 //! Module for sorting direction.
 use mlua::{FromLua, Lua};
 
-#[non_exhaustive]
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Direction {
     /// Ascending order.

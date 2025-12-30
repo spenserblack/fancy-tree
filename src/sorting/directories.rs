@@ -4,7 +4,6 @@ use std::cmp::Ordering;
 use std::path::Path;
 
 /// How directories should be included in sorting.
-#[non_exhaustive]
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Directories {
     /// Directories and files should be mixed together.
