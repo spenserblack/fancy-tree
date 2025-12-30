@@ -82,7 +82,6 @@ impl Cli {
             .or_else(|| config.as_ref().and_then(|config| config.color_choice()))
             .unwrap_or_default();
 
-        // Build tree with method chaining
         let mut builder = tree::Builder::new(&self.path, color_choice);
         
         // Apply configurations if they exist
