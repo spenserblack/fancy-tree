@@ -67,7 +67,7 @@ impl Cli {
             builder.build().expect("The lua state should be valid")
         };
 
-        // Load configurations with error handling
+        // TODO Skip loading the config instead of panicking.
         let config_dir = ConfigDir::new().expect("A config dir should be available");
         
         // Use lua_state.to_inner() once and reuse
