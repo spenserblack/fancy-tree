@@ -2,6 +2,7 @@
 pub use direction::Direction;
 pub use directories::Directories;
 pub use method::Method;
+use mlua::{FromLua, Lua};
 use std::borrow::Cow;
 use std::cmp::Ordering;
 use std::ffi::OsStr;
@@ -103,6 +104,26 @@ impl Default for Sorting {
             ignore_case,
             ignore_dot: false,
         }
+    }
+}
+
+impl FromLua for Sorting {
+    fn from_lua(value: mlua::Value, lua: &Lua) -> mlua::Result<Self> {
+        let table = mlua::Table::from_lua(value, lua)?;
+        let method = table.get("method")?;
+        let direction = table.get("direction")?;
+        let directories = table.get("directories")?;
+        let ignore_case = table.get("ignore_case")?;
+        let ignore_dot = table.get("ignore_dot")?;
+
+        let sorting = Self {
+            method,
+            direction,
+            directories,
+            ignore_case,
+            ignore_dot,
+        };
+        Ok(sorting)
     }
 }
 
