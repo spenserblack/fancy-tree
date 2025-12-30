@@ -37,8 +37,8 @@ impl Method {
 
     /// Naturally sort two OS strings.
     fn cmp_natural(left: &OsStr, right: &OsStr) -> Ordering {
-        let mut left = left.as_encoded_bytes().into_iter().map(|b| *b);
-        let mut right = right.as_encoded_bytes().into_iter().map(|b| *b);
+        let mut left = left.as_encoded_bytes().iter().copied();
+        let mut right = right.as_encoded_bytes().iter().copied();
         loop {
             let (left_char, right_char) = match (left.next(), right.next()) {
                 (None, None) => break Ordering::Equal,
