@@ -9,9 +9,9 @@ use std::path::Path;
 /// The main configuration type.
 #[derive(Debug)]
 pub struct Main {
-    // Determines when/how the application should show colors.
+    /// Determines when/how the application should show colors.
     color: Option<ColorChoice>,
-    // Function to determine if a file should be skipped.
+    /// Function to determine if a file should be skipped.
     skip: Option<mlua::Function>,
 }
 
