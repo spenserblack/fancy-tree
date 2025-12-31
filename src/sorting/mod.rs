@@ -50,6 +50,12 @@ pub struct Sorting {
 }
 
 impl Sorting {
+    /// Default value for whether or not to ignore case.
+    const DEFAULT_IGNORE_CASE: bool = cfg!(windows);
+
+    /// Default value for if to ignore the dot in a dotfile.
+    const DEFAULT_IGNORE_DOT: bool = false;
+
     /// Cleans the dot if necessary.
     fn clean_dot<'a>(&self, os_str: &'a OsStr) -> &'a OsStr {
         if self.ignore_dot {
@@ -96,13 +102,12 @@ impl Sorting {
 
 impl Default for Sorting {
     fn default() -> Self {
-        let ignore_case = cfg!(windows);
         Self {
             method: Default::default(),
             direction: Default::default(),
             directories: Default::default(),
-            ignore_case,
-            ignore_dot: false,
+            ignore_case: Self::DEFAULT_IGNORE_CASE,
+            ignore_dot: Self::DEFAULT_IGNORE_DOT,
         }
     }
 }
@@ -110,11 +115,19 @@ impl Default for Sorting {
 impl FromLua for Sorting {
     fn from_lua(value: mlua::Value, lua: &Lua) -> mlua::Result<Self> {
         let table = mlua::Table::from_lua(value, lua)?;
-        let method = table.get("method")?;
-        let direction = table.get("direction")?;
-        let directories = table.get("directories")?;
-        let ignore_case = table.get("ignore_case")?;
-        let ignore_dot = table.get("ignore_dot")?;
+        let method = table.get::<Option<Method>>("method")?.unwrap_or_default();
+        let direction = table
+            .get::<Option<Direction>>("direction")?
+            .unwrap_or_default();
+        let directories = table
+            .get::<Option<Directories>>("directories")?
+            .unwrap_or_default();
+        let ignore_case = table
+            .get::<Option<bool>>("ignore_case")?
+            .unwrap_or(Self::DEFAULT_IGNORE_CASE);
+        let ignore_dot = table
+            .get::<Option<bool>>("ignore_dot")?
+            .unwrap_or(Self::DEFAULT_IGNORE_DOT);
 
         let sorting = Self {
             method,

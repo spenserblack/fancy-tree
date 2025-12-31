@@ -2,9 +2,18 @@
 use super::ConfigFile;
 use crate::color::ColorChoice;
 use crate::lua::interop;
+use crate::sorting;
 use crate::tree::Entry;
-use mlua::{FromLua, Lua};
+use mlua::{
+    Either::{self, Left, Right},
+    FromLua, Lua,
+};
+use std::cmp::Ordering;
 use std::path::Path;
+
+/// Either a sorting configuration, or a function that takes two values and returns
+/// a negative number for less-than, 0 for equal, or a positive number for greater-than.
+type Sorting = Either<sorting::Sorting, mlua::Function>;
 
 /// The main configuration type.
 #[derive(Debug)]
@@ -13,6 +22,8 @@ pub struct Main {
     color: Option<ColorChoice>,
     /// Function to determine if a file should be skipped.
     skip: Option<mlua::Function>,
+    /// Determines how to sort files in a directory.
+    sorting: Sorting,
 }
 
 impl Main {
@@ -37,6 +48,34 @@ impl Main {
             .as_ref()
             .map(|f| f.call::<bool>((path, attributes, default_choice)))
     }
+
+    /// Compares two paths for sorting.
+    pub fn cmp<L, R>(&self, left: L, right: R) -> mlua::Result<Ordering>
+    where
+        L: AsRef<Path>,
+        R: AsRef<Path>,
+    {
+        match self.sorting.as_ref() {
+            Left(sorting) => Ok(sorting.cmp(left, right)),
+            Right(f) => f
+                .call((left.as_ref(), right.as_ref()))
+                .map(Self::isize_to_ordering),
+        }
+    }
+
+    /// Creates the default sorting configuration.
+    fn default_sorting() -> Sorting {
+        Left(Default::default())
+    }
+
+    /// Converts a number returned by a lua function for comparing paths into [`Ordering`].
+    fn isize_to_ordering(n: isize) -> Ordering {
+        match n {
+            ..=-1 => Ordering::Less,
+            0 => Ordering::Equal,
+            1.. => Ordering::Greater,
+        }
+    }
 }
 
 impl ConfigFile for Main {
@@ -57,7 +96,28 @@ impl FromLua for Main {
         let table = value.as_table().ok_or_else(conversion_error)?;
         let color: Option<ColorChoice> = table.get("color")?;
         let skip: Option<mlua::Function> = table.get("skip")?;
-        let main = Main { color, skip };
+        let sorting = table
+            .get::<Option<Sorting>>("sorting")?
+            .unwrap_or_else(Self::default_sorting);
+        let main = Main {
+            color,
+            skip,
+            sorting,
+        };
         Ok(main)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rstest::rstest;
+
+    #[rstest]
+    #[case(-1, Ordering::Less)]
+    #[case(0, Ordering::Equal)]
+    #[case(1, Ordering::Greater)]
+    fn test_isize_to_ordering(#[case] n: isize, #[case] expected: Ordering) {
+        assert_eq!(expected, Main::isize_to_ordering(n));
     }
 }
