@@ -66,6 +66,12 @@ set the colors for git statuses.
 [default-color-config]: ./src/config/colors/colors.lua
 [default-icon-config]: ./src/config/icons/icons.lua
 
+### 🐛 Troubleshooting
+
+Icons not showing? Ensure you have a Nerd Font installed and selected in your terminal.
+
+Git status missing? Make sure you're in a git repository and have git installed.
+
 
 ### LICENSE
 
