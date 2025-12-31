@@ -13,13 +13,15 @@ View [`INSTALL.md`](./INSTALL.md)
 
 ### Nerd Font icons with language detection
 
-[Nerd Fonts](https://www.nerdfonts.com/) are used for file icons. Each file is analyzed
-to determine the appropriate icon and what color the icon should be.
+[Nerd Fonts](https://www.nerdfonts.com/) are used for file icons. Each file is analyzed to determine the appropriate icon and color.
 
 ### Git Integration
+- Git status indicators (modified, staged, untracked)
+- Git ignored files are visually dimmed
 
-- Git status is displayed
-- Git ignored files' filenames are dimmed
+
+### Highly Configurable
+Customize icons, colors, and behavior through Lua configuration files.
 
 ## Configuration
 
@@ -63,3 +65,8 @@ set the colors for git statuses.
 [default-main-config]: ./src/config/main/config.lua
 [default-color-config]: ./src/config/colors/colors.lua
 [default-icon-config]: ./src/config/icons/icons.lua
+
+
+### LICENSE
+
+View [`LICENSE`](./INSTALL-APACHE.md)
