@@ -81,12 +81,12 @@ impl Cli {
             .load_colors(lua_inner)
             .expect("The color configuration should be valid");
 
-        let color_choice = self
-            .color_choice
-            .or_else(|| config.as_ref().and_then(|config| config.color_choice()))
-            .unwrap_or_default();
+        let mut builder = tree::Builder::new(&self.path);
 
-        let mut builder = tree::Builder::new(&self.path, color_choice);
+        // NOTE Apply configuration overrides from CLI.
+        if let Some(color_choice) = self.color_choice {
+            builder = builder.color_choice(color_choice);
+        }
 
         // NOTE Apply configurations if they exist
         if let Some(config) = config {

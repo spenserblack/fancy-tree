@@ -11,9 +11,9 @@ pub struct Builder<'git, 'charset, P: AsRef<Path>> {
     root: P,
     /// The optional git state.
     git: Option<&'git Git>,
-    color_choice: ColorChoice,
-    max_level: Option<usize>,
+    color_choice: Option<ColorChoice>,
     charset: Option<Charset<'charset>>,
+    max_level: Option<usize>,
     config: Option<config::Main>,
     icons: Option<config::Icons>,
     colors: Option<config::Colors>,
@@ -25,13 +25,13 @@ where
 {
     /// Creates a new [`Builder`]
     #[inline]
-    pub fn new(root: P, color_choice: ColorChoice) -> Self {
+    pub fn new(root: P) -> Self {
         Self {
             root,
             git: None,
-            color_choice,
             max_level: None,
             charset: None,
+            color_choice: None,
             config: None,
             icons: None,
             colors: None,
@@ -64,6 +64,17 @@ where
     pub fn charset(self, charset: Charset<'charset>) -> Self {
         Self {
             charset: Some(charset),
+            ..self
+        }
+    }
+
+    /// Sets [`ColorChoice`] override for the [`Tree`]. The color choice provided by the
+    /// main configuration is used if this isn't set.
+    #[inline]
+    #[must_use]
+    pub fn color_choice(self, color_choice: ColorChoice) -> Self {
+        Self {
+            color_choice: Some(color_choice),
             ..self
         }
     }
@@ -106,9 +117,9 @@ where
             max_level: self.max_level,
             charset: self.charset.unwrap_or_default(),
             color_choice: self.color_choice,
-            config: self.config,
-            icons: self.icons,
-            colors: self.colors,
+            config: self.config.unwrap_or_default(),
+            icons: self.icons.unwrap_or_default(),
+            colors: self.colors.unwrap_or_default(),
         }
     }
 }
