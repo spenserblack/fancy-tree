@@ -19,9 +19,9 @@ View [`INSTALL.md`](./INSTALL.md)
 - Git status indicators (modified, staged, untracked)
 - Git ignored files are visually dimmed
 
-
 ### Highly Configurable
 Customize icons, colors, and behavior through Lua configuration files.
+
 
 ## Configuration
 
