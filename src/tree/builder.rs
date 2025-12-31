@@ -107,7 +107,7 @@ where
             charset: self.charset.unwrap_or_default(),
             color_choice: self.color_choice,
             config: self.config,
-            icons: self.icons,
+            icons: self.icons.unwrap_or_default(),
             colors: self.colors,
         }
     }

@@ -34,9 +34,7 @@ pub struct Tree<'git, 'charset, P: AsRef<Path>> {
     /// When this is `None`, default behaviors will be used.
     config: Option<config::Main>,
     /// Provides icon configuration.
-    ///
-    /// When this is `None`, default behaviors will be used.
-    icons: Option<config::Icons>,
+    icons: config::Icons,
     /// Provides color configuration.
     ///
     /// When this is `None`, default behaviors will be used.
@@ -47,18 +45,6 @@ impl<'git, 'charset, P> Tree<'git, 'charset, P>
 where
     P: AsRef<Path>,
 {
-    /// The default icon to display for files.
-    const DEFAULT_FILE_ICON: &'static str = "\u{f0214}"; // 󰈔
-    /// The default icon to display when a file is an executable.
-    const DEFAULT_EXECUTABLE_ICON: &'static str = "\u{f070e}"; // 󰜎
-    /// The default icon to display for directories/folders.
-    const DEFAULT_DIRECTORY_ICON: &'static str = "\u{f024b}"; // 󰉋
-    /// The default icon to display for symlinks.
-    const DEFAULT_SYMLINK_ICON: &'static str = "\u{cf481}"; // 
-
-    /// The icon (padding) to use if there is no icon.
-    const EMPTY_ICON: &'static str = " ";
-
     /// The default color to use for files.
     const DEFAULT_FILE_COLOR: Option<Color> = None;
     /// The default color to use when a file is an executable.
@@ -158,7 +144,7 @@ where
         let path = entry.path();
         self.write_statuses(writer, path)?;
 
-        let icon = self.get_icon(entry);
+        let icon = self.icons.get_icon(entry);
         self.write_colorized_for_entry(entry, writer, icon)?;
         // NOTE Padding for the icons
         write!(writer, " ")?;
@@ -244,39 +230,6 @@ where
                 git.is_ignored(path).ok()
             })
             .unwrap_or(false)
-    }
-
-    /// Gets the icon for an entry.
-    fn get_icon<P2>(&self, entry: &Entry<P2>) -> String
-    where
-        P2: AsRef<Path>,
-    {
-        let default_choice = match entry.attributes() {
-            Attributes::Directory(_) => Self::DEFAULT_DIRECTORY_ICON,
-            Attributes::File(attributes) => Self::get_file_icon(attributes),
-            Attributes::Symlink(_) => Self::DEFAULT_SYMLINK_ICON,
-        };
-        // TODO Don't panic on get_icon error.
-        self.icons
-            .as_ref()
-            .map(|icons| {
-                icons
-                    .get_icon(entry, default_choice)
-                    .expect("Icon configuration should be valid")
-                    .unwrap_or_else(|| String::from(Self::EMPTY_ICON))
-            })
-            .unwrap_or_else(|| String::from(default_choice))
-    }
-
-    /// Gets the icon for a file entry.
-    fn get_file_icon(attributes: &FileAttributes) -> &'static str {
-        if attributes.is_executable() {
-            return Self::DEFAULT_EXECUTABLE_ICON;
-        }
-        attributes
-            .language()
-            .and_then(|language| language.nerd_font_glyph())
-            .unwrap_or(Self::DEFAULT_FILE_ICON)
     }
 
     /// Writes the text in a colored style.
