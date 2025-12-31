@@ -1,12 +1,14 @@
 //! Provides the utility for generating a tree.
 use crate::color::{Color, ColorChoice};
 use crate::config;
-use crate::git::status;
-use crate::git::{Git, status::Status};
+use crate::git::status::StatusGetter;
+use crate::git::{
+    Git,
+    status::{self, Status},
+};
 pub use builder::Builder;
 pub use charset::Charset;
 pub use entry::Entry;
-use entry::attributes::{Attributes, FileAttributes};
 use owo_colors::AnsiColors;
 use owo_colors::OwoColorize;
 use std::fmt::Display;
@@ -25,49 +27,24 @@ pub struct Tree<'git, 'charset, P: AsRef<Path>> {
     git: Option<&'git Git>,
     /// The maximum depth level to display.
     max_level: Option<usize>,
+    /// Overrides the configured color choice (e.g. if specified in the CLI).
+    color_choice: Option<ColorChoice>,
     /// Provides the characters to print when traversing the directory structure.
     charset: Charset<'charset>,
-    /// Controls how the tree colorizes output.
-    color_choice: ColorChoice,
     /// Provides configuration choices.
     ///
     /// When this is `None`, default behaviors will be used.
-    config: Option<config::Main>,
+    config: config::Main,
     /// Provides icon configuration.
-    ///
-    /// When this is `None`, default behaviors will be used.
-    icons: Option<config::Icons>,
+    icons: config::Icons,
     /// Provides color configuration.
-    ///
-    /// When this is `None`, default behaviors will be used.
-    colors: Option<config::Colors>,
+    colors: config::Colors,
 }
 
 impl<'git, 'charset, P> Tree<'git, 'charset, P>
 where
     P: AsRef<Path>,
 {
-    /// The default icon to display for files.
-    const DEFAULT_FILE_ICON: &'static str = "\u{f0214}"; // 󰈔
-    /// The default icon to display when a file is an executable.
-    const DEFAULT_EXECUTABLE_ICON: &'static str = "\u{f070e}"; // 󰜎
-    /// The default icon to display for directories/folders.
-    const DEFAULT_DIRECTORY_ICON: &'static str = "\u{f024b}"; // 󰉋
-    /// The default icon to display for symlinks.
-    const DEFAULT_SYMLINK_ICON: &'static str = "\u{cf481}"; // 
-
-    /// The icon (padding) to use if there is no icon.
-    const EMPTY_ICON: &'static str = " ";
-
-    /// The default color to use for files.
-    const DEFAULT_FILE_COLOR: Option<Color> = None;
-    /// The default color to use when a file is an executable.
-    const DEFAULT_EXECUTABLE_COLOR: Option<Color> = Some(Color::Ansi(AnsiColors::Green));
-    /// The default color to use for directories/folders.
-    const DEFAULT_DIRECTORY_COLOR: Option<Color> = Some(Color::Ansi(AnsiColors::Blue));
-    /// The default color to use for symlinks.
-    const DEFAULT_SYMLINK_COLOR: Option<Color> = Some(Color::Ansi(AnsiColors::Cyan));
-
     /// Writes the tree to stdout.
     #[inline]
     pub fn write_to_stdout(&self) -> crate::Result<()>
@@ -158,7 +135,7 @@ where
         let path = entry.path();
         self.write_statuses(writer, path)?;
 
-        let icon = self.get_icon(entry);
+        let icon = self.icons.get_icon(entry);
         self.write_colorized_for_entry(entry, writer, icon)?;
         // NOTE Padding for the icons
         write!(writer, " ")?;
@@ -185,7 +162,7 @@ where
             Self::write_path(writer, path)
         } else {
             const TEXT_COLOR: Option<Color> = Some(Color::Ansi(AnsiColors::Black));
-            self.color_choice
+            self.color_choice()
                 .write_to(writer, path.display(), TEXT_COLOR, None)
         }
     }
@@ -221,12 +198,8 @@ where
         P2: AsRef<Path>,
     {
         let path = entry.path();
-        let is_hidden = entry.is_hidden() || self.is_path_ignored(path);
         self.config
-            .as_ref()
-            .and_then(|config| config.should_skip(entry, is_hidden).transpose().ok())
-            .flatten()
-            .unwrap_or(is_hidden)
+            .should_skip(entry, || self.is_path_ignored(path))
     }
 
     /// Checks if a path is ignored.
@@ -246,39 +219,6 @@ where
             .unwrap_or(false)
     }
 
-    /// Gets the icon for an entry.
-    fn get_icon<P2>(&self, entry: &Entry<P2>) -> String
-    where
-        P2: AsRef<Path>,
-    {
-        let default_choice = match entry.attributes() {
-            Attributes::Directory(_) => Self::DEFAULT_DIRECTORY_ICON,
-            Attributes::File(attributes) => Self::get_file_icon(attributes),
-            Attributes::Symlink(_) => Self::DEFAULT_SYMLINK_ICON,
-        };
-        // TODO Don't panic on get_icon error.
-        self.icons
-            .as_ref()
-            .map(|icons| {
-                icons
-                    .get_icon(entry, default_choice)
-                    .expect("Icon configuration should be valid")
-                    .unwrap_or_else(|| String::from(Self::EMPTY_ICON))
-            })
-            .unwrap_or_else(|| String::from(default_choice))
-    }
-
-    /// Gets the icon for a file entry.
-    fn get_file_icon(attributes: &FileAttributes) -> &'static str {
-        if attributes.is_executable() {
-            return Self::DEFAULT_EXECUTABLE_ICON;
-        }
-        attributes
-            .language()
-            .and_then(|language| language.nerd_font_glyph())
-            .unwrap_or(Self::DEFAULT_FILE_ICON)
-    }
-
     /// Writes the text in a colored style.
     fn write_colorized_for_entry<W, D, P2>(
         &self,
@@ -291,42 +231,15 @@ where
         D: Display + OwoColorize,
         P2: AsRef<Path>,
     {
+        let color_choice = self.color_choice();
+
         // HACK Optimization to avoid calculating colors when they're disabled.
-        if self.color_choice.is_off() {
+        if color_choice.is_off() {
             return write!(writer, "{display}");
         }
 
-        let fg = match entry.attributes() {
-            Attributes::Directory(_) => Self::DEFAULT_DIRECTORY_COLOR,
-            Attributes::File(attributes) => Self::get_file_color(attributes),
-            Attributes::Symlink(_) => Self::DEFAULT_SYMLINK_COLOR,
-        };
-        let fg = self
-            .colors
-            .as_ref()
-            .and_then(|colors| {
-                colors
-                    .for_icon(entry, fg)
-                    .expect("Colors configuration should be valid")
-            })
-            .or(fg);
-
-        self.color_choice.write_to(writer, display, fg, None)
-    }
-
-    /// Gets the color for a file.
-    fn get_file_color(attributes: &FileAttributes) -> Option<Color> {
-        attributes
-            .language()
-            .map(|language| language.rgb())
-            .map(|(r, g, b)| Color::Rgb(r, g, b))
-            .or_else(|| {
-                attributes
-                    .is_executable()
-                    .then_some(Self::DEFAULT_EXECUTABLE_COLOR)
-                    .flatten()
-            })
-            .or(Self::DEFAULT_FILE_COLOR)
+        let fg = self.colors.for_icon(entry);
+        color_choice.write_to(writer, display, fg, None)
     }
 
     /// Writes colorized git statuses.
@@ -346,27 +259,19 @@ where
         Ok(())
     }
 
-    /// Writes a colorized git status.
+    /// Writes a colorized untracked (worktree) git status.
     fn write_status<S, W, P2>(&self, writer: &mut W, git: &Git, path: P2) -> io::Result<()>
     where
-        S: status::StatusGetter + StatusColor,
+        S: StatusGetter + ColoredStatus,
         W: Write,
         P2: AsRef<Path>,
     {
         const NO_STATUS: &str = " ";
 
         let status = git.status::<S, _>(path).ok().flatten();
-        let color = status.and_then(|status| {
-            self.colors.as_ref().map_or_else(
-                || S::get_default_color(status),
-                |config| {
-                    S::get_git_status_color(status, config)
-                        .expect("Config should return a valid color")
-                },
-            )
-        });
+        let color = status.and_then(|status| S::get_color(&self.colors, status));
         let status = status.map(|status| status.as_str()).unwrap_or(NO_STATUS);
-        self.color_choice.write_to(writer, status, color, None)
+        self.color_choice().write_to(writer, status, color, None)
     }
 
     /// Strips the root path prefix, which is necessary for git tools.
@@ -393,69 +298,29 @@ where
             .expect("Path should have the git root as a prefix");
         Some(path.to_path_buf())
     }
-}
 
-/// Private trait to generalize getting the color for a status.
-trait StatusColor {
-    /// Default color for added status.
-    const DEFAULT_ADDED: AnsiColors;
-    /// Default color for modified status.
-    const DEFAULT_MODIFIED: AnsiColors;
-    /// Default color for removed status.
-    const DEFAULT_REMOVED: AnsiColors;
-    /// Default color for renamed status.
-    const DEFAULT_RENAMED: AnsiColors;
-
-    /// Gets the default color for a status.
-    fn get_default_color(status: Status) -> Option<Color> {
-        use Status::*;
-
-        let default_color = match status {
-            Added => Self::DEFAULT_ADDED,
-            Modified => Self::DEFAULT_MODIFIED,
-            Removed => Self::DEFAULT_REMOVED,
-            Renamed => Self::DEFAULT_RENAMED,
-        };
-
-        let default_color = Color::Ansi(default_color);
-        Some(default_color)
-    }
-
-    /// Gets the color for a git status.
-    fn get_git_status_color(
-        status: Status,
-        color_config: &config::Colors,
-    ) -> mlua::Result<Option<Color>>;
-}
-
-impl StatusColor for status::Tracked {
-    const DEFAULT_ADDED: AnsiColors = AnsiColors::Green;
-    const DEFAULT_MODIFIED: AnsiColors = AnsiColors::Yellow;
-    const DEFAULT_REMOVED: AnsiColors = AnsiColors::Red;
-    const DEFAULT_RENAMED: AnsiColors = AnsiColors::Cyan;
-
-    /// Gets the tracked git status color.
-    fn get_git_status_color(
-        status: Status,
-        color_config: &config::Colors,
-    ) -> mlua::Result<Option<Color>> {
-        let default_choice = Self::get_default_color(status);
-        color_config.for_tracked_git_status(status, default_choice)
+    /// Gets the color choice to use.
+    fn color_choice(&self) -> ColorChoice {
+        self.color_choice.unwrap_or(self.config.color_choice())
     }
 }
 
-impl StatusColor for status::Untracked {
-    const DEFAULT_ADDED: AnsiColors = AnsiColors::BrightGreen;
-    const DEFAULT_MODIFIED: AnsiColors = AnsiColors::BrightYellow;
-    const DEFAULT_REMOVED: AnsiColors = AnsiColors::BrightRed;
-    const DEFAULT_RENAMED: AnsiColors = AnsiColors::BrightCyan;
+/// Private trait to generalize writing statuses.
+trait ColoredStatus {
+    /// Gets the color for the status.
+    fn get_color(config: &config::Colors, status: Status) -> Option<Color>;
+}
 
-    /// Gets the untracked git status color.
-    fn get_git_status_color(
-        status: Status,
-        color_config: &config::Colors,
-    ) -> mlua::Result<Option<Color>> {
-        let default_choice = Self::get_default_color(status);
-        color_config.for_untracked_git_status(status, default_choice)
+impl ColoredStatus for status::Untracked {
+    #[inline]
+    fn get_color(config: &config::Colors, status: Status) -> Option<Color> {
+        config.for_untracked_git_status(status)
+    }
+}
+
+impl ColoredStatus for status::Tracked {
+    #[inline]
+    fn get_color(config: &config::Colors, status: Status) -> Option<Color> {
+        config.for_tracked_git_status(status)
     }
 }

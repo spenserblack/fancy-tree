@@ -16,10 +16,10 @@ use std::path::Path;
 type Sorting = Either<sorting::Sorting, mlua::Function>;
 
 /// The main configuration type.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Main {
     /// Determines when/how the application should show colors.
-    color: Option<ColorChoice>,
+    color: ColorChoice,
     /// Function to determine if a file should be skipped.
     skip: Option<mlua::Function>,
     /// Determines how to sort files in a directory.
@@ -29,24 +29,27 @@ pub struct Main {
 impl Main {
     /// Gets the configured color choice.
     #[inline]
-    pub fn color_choice(&self) -> Option<ColorChoice> {
+    pub fn color_choice(&self) -> ColorChoice {
         self.color
     }
     /// Should a file be skipped according to the configuration?
-    pub fn should_skip<P>(
-        &self,
-        entry: &Entry<P>,
-        default_choice: bool,
-    ) -> Option<mlua::Result<bool>>
+    ///
+    /// `git_helper` is used to provide interoperability with git, which this config
+    /// type isn't aware of.
+    pub fn should_skip<P, F>(&self, entry: &Entry<P>, git_helper: F) -> bool
     where
         P: AsRef<Path>,
+        F: FnOnce() -> bool,
     {
+        let default = entry.is_hidden() || git_helper();
         let path = entry.path();
         let attributes = interop::FileAttributes::from(entry);
 
+        // TODO Report error
         self.skip
             .as_ref()
-            .map(|f| f.call::<bool>((path, attributes, default_choice)))
+            .map_or(Ok(default), |f| f.call::<bool>((path, attributes, default)))
+            .unwrap_or(default)
     }
 
     /// Compares two paths for sorting.
@@ -94,7 +97,9 @@ impl FromLua for Main {
         };
 
         let table = value.as_table().ok_or_else(conversion_error)?;
-        let color: Option<ColorChoice> = table.get("color")?;
+        let color = table
+            .get::<Option<ColorChoice>>("color")?
+            .unwrap_or_default();
         let skip: Option<mlua::Function> = table.get("skip")?;
         let sorting = table
             .get::<Option<Sorting>>("sorting")?
