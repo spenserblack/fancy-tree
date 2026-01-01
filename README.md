@@ -21,7 +21,8 @@ View [`INSTALL.md`](./INSTALL.md)
 - Git ignored files' filenames are dimmed
 
 ### Highly Configurable
- - Customize icons, colors, and behavior through Lua configuration files.
+
+- Customize icons, colors, and behavior through Lua configuration files.
 
 ## Configuration
 
