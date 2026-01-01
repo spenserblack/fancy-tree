@@ -35,7 +35,7 @@ clap = { version = "4.5.52", features = ["derive"] }
 directories = "6.0.0"
 either = "1.15.0"
 find-editor = "1.0.0"
-gengo = { version = "0.14", default-features = false }
+gengo-language = "0.14.1-rc.1"
 git2 = { version = "0.20.3", default-features = false }
 glob = "0.3.3"
 mlua = "0.11"
