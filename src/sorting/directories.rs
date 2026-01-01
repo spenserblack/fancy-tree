@@ -127,11 +127,11 @@ mod tests {
     #[case(Directories::Mixed, true, false, Ordering::Equal)]
     #[case(Directories::Mixed, false, true, Ordering::Equal)]
     #[case(Directories::First, true, true, Ordering::Equal)]
-    #[case(Directories::First, true, false, Ordering::Greater)]
-    #[case(Directories::First, false, true, Ordering::Less)]
+    #[case(Directories::First, true, false, Ordering::Less)]
+    #[case(Directories::First, false, true, Ordering::Greater)]
     #[case(Directories::Last, true, true, Ordering::Equal)]
-    #[case(Directories::Last, true, false, Ordering::Less)]
-    #[case(Directories::Last, false, true, Ordering::Greater)]
+    #[case(Directories::Last, true, false, Ordering::Greater)]
+    #[case(Directories::Last, false, true, Ordering::Less)]
     fn test_cmp(
         #[case] directories: Directories,
         #[case] left_is_dir: bool,
