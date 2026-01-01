@@ -78,21 +78,26 @@ impl Sorting {
         }
     }
 
+    /// Cleans the filename for the path.
+    fn clean_path<'a>(&self, path: &'a Path) -> Cow<'a, OsStr> {
+        let file_name = path
+            .file_name()
+            .expect("Path should always terminate in a named component");
+        let file_name = self.clean_dot(file_name);
+        self.clean_casing(file_name)
+    }
+
     /// Compares two paths.
     pub fn cmp<L, R>(&self, left: L, right: R) -> Ordering
     where
         L: AsRef<Path>,
         R: AsRef<Path>,
     {
-        let left = self.clean_dot(left.as_ref().as_os_str());
-        let right = self.clean_dot(right.as_ref().as_os_str());
-        let left = self.clean_casing(left);
-        let right = self.clean_casing(right);
-
-        let ordering = self
-            .directories
-            .cmp(&left, &right)
-            .then_with(|| self.method.cmp(left, right));
+        let ordering = self.directories.cmp(&left, &right).then_with(|| {
+            let left = self.clean_path(left.as_ref());
+            let right = self.clean_path(right.as_ref());
+            self.method.cmp(left, right)
+        });
         match self.direction {
             Direction::Asc => ordering,
             Direction::Desc => ordering.reverse(),
