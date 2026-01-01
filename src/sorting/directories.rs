@@ -53,7 +53,7 @@ impl Directories {
             return Ordering::Equal;
         }
 
-        match (self, right.is_directory(), left.is_directory()) {
+        match (self, left.is_directory(), right.is_directory()) {
             (Self::Mixed, _, _) => unreachable!("Already checked for mixed ordering"),
             (_, true, true) | (_, false, false) => Ordering::Equal,
             (Self::First, true, false) | (Self::Last, false, true) => Ordering::Less,
