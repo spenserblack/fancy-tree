@@ -6,6 +6,7 @@ pub mod color;
 pub mod config;
 mod git;
 pub mod lua;
+pub mod sorting;
 pub mod tree;
 
 /// The standard result type.

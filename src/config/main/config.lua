@@ -10,4 +10,7 @@ return {
     -- Windows.
     return default
   end,
+  ---@type Sorting|nil
+  -- When this is nil, the default sorting algorithm will be used.
+  sorting = nil,
 }

@@ -15,3 +15,14 @@
 ---@alias Color ANSI|RGB
 
 ---@alias GitStatus "added"|"modified"|"removed"|"renamed"
+
+---@class SortingConfig
+---@field method "naive"|"natural"|nil
+---@field direction "asc"|"desc"|"ascending"|"descending"|nil
+---@field directories "mixed"|"first"|"last"|nil
+---@field ignore_case boolean|nil
+---@field ignore_dot boolean|nil
+
+---@alias SortingFn fun(left: string, right: string): -1|0|1
+
+---@alias Sorting SortingConfig|SortingFn
