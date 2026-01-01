@@ -104,13 +104,8 @@ where
             //      be skipped, use that value. Otherwise, use default behavior.
             let entries = entries.filter(|entry| !self.should_skip_entry(entry));
 
-            // NOTE By default entry order is not guaranteed. This explicitly sorts them.
-            // TODO Support different sorting algorithms.
             let mut entries = entries.collect::<Vec<_>>();
-            entries.sort_by_key(|entry| {
-                let path = entry.path();
-                path.to_path_buf()
-            });
+            entries.sort_by(|left, right| self.config.cmp(left.path(), right.path()));
             entries
         };
         if self.max_level.map(|max| depth >= max).unwrap_or(false) {

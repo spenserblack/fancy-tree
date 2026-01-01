@@ -16,7 +16,7 @@ use std::path::Path;
 type Sorting = Either<sorting::Sorting, mlua::Function>;
 
 /// The main configuration type.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Main {
     /// Determines when/how the application should show colors.
     color: ColorChoice,
@@ -53,16 +53,18 @@ impl Main {
     }
 
     /// Compares two paths for sorting.
-    pub fn cmp<L, R>(&self, left: L, right: R) -> mlua::Result<Ordering>
+    pub fn cmp<L, R>(&self, left: L, right: R) -> Ordering
     where
         L: AsRef<Path>,
         R: AsRef<Path>,
     {
+        // TODO Report error
         match self.sorting.as_ref() {
-            Left(sorting) => Ok(sorting.cmp(left, right)),
+            Left(sorting) => sorting.cmp(left, right),
             Right(f) => f
                 .call((left.as_ref(), right.as_ref()))
-                .map(Self::isize_to_ordering),
+                .map(Self::isize_to_ordering)
+                .unwrap_or(Ordering::Equal),
         }
     }
 
@@ -77,6 +79,16 @@ impl Main {
             ..=-1 => Ordering::Less,
             0 => Ordering::Equal,
             1.. => Ordering::Greater,
+        }
+    }
+}
+
+impl Default for Main {
+    fn default() -> Self {
+        Self {
+            color: Default::default(),
+            skip: None,
+            sorting: Self::default_sorting(),
         }
     }
 }
