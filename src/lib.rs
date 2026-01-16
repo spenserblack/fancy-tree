@@ -5,6 +5,7 @@ pub mod cli;
 pub mod color;
 pub mod config;
 mod git;
+pub mod icons;
 pub mod lua;
 pub mod sorting;
 pub mod tree;

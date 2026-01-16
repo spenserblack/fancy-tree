@@ -1,5 +1,6 @@
 //! Module for the icon config.
 use super::ConfigFile;
+use crate::icons;
 use crate::lua::interop;
 use crate::tree::{
     Entry,
@@ -37,7 +38,8 @@ impl Icons {
         P: AsRef<Path>,
     {
         // TODO Use Cow
-        let default_icon = Self::default_icon(entry);
+        let default_icon =
+            icons::for_path(entry.path()).unwrap_or_else(|| Self::default_icon(entry));
         self.get_icon
             .as_ref()
             .and_then(|f| {
