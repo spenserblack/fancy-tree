@@ -42,6 +42,7 @@ fn for_extension(extension: &str) -> Option<&'static str> {
     // NOTE These should be in alphabetical order for easier code review.
     let icon = match extension {
         "cfg" => "\u{e615}", // 
+        "gif" | "jpeg" | "jpg" | "png" => shared::IMAGE,
         "lock" => shared::LOCK,
         _ => return None,
     };
@@ -87,4 +88,20 @@ mod shared {
     pub const LICENSE: &str = "\u{e60a}"; // 
     /// Icon for lock files.
     pub const LOCK: &str = "\u{e672}"; // 
+    /// Icon for image files.
+    pub const IMAGE: &str = "\u{f1c5}"; // 
+}
+
+#[cfg(test)]
+mod tests {
+    use super::for_path;
+    use super::shared;
+
+    #[test]
+    fn uses_image_icon_for_common_image_extensions() {
+        for ext in ["gif", "jpeg", "jpg", "png"] {
+            let filename = format!("example.{ext}");
+            assert_eq!(for_path(&filename), Some(shared::IMAGE));
+        }
+    }
 }
