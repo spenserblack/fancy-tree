@@ -94,14 +94,16 @@ mod shared {
 
 #[cfg(test)]
 mod tests {
-    use super::for_path;
-    use super::shared;
+    use super::*;
+    use rstest::rstest;
 
-    #[test]
-    fn uses_image_icon_for_common_image_extensions() {
-        for ext in ["gif", "jpeg", "jpg", "png"] {
-            let filename = format!("example.{ext}");
-            assert_eq!(for_path(&filename), Some(shared::IMAGE));
-        }
+    #[rstest]
+    #[case("gif")]
+    #[case("jpeg")]
+    #[case("jpg")]
+    #[case("png")]
+    fn uses_image_icon_for_common_image_extensions(#[case] ext: &str) {
+        let filename = format!("example.{ext}");
+        assert_eq!(shared::IMAGE, for_path(&filename).unwrap());
     }
 }
