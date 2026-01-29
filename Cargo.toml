@@ -1,6 +1,6 @@
 [package]
 name = "fancy-tree"
-version = "0.1.0"
+version = "0.1.2"
 description = "A `tree` alternative with git support, code language detection, and nerd fonts."
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/spenserblack/fancy-tree"
@@ -13,6 +13,7 @@ exclude = [
     ".git-blame-ignore-revs",
     ".luarc.lua",
     ".vscode/",
+    "INSTALL.md",
     "/lua/",
     "/scripts/",
 ]
@@ -34,7 +35,7 @@ clap = { version = "4.5.52", features = ["derive"] }
 directories = "6.0.0"
 either = "1.15.0"
 find-editor = "1.0.0"
-gengo = { version = "0.14", default-features = false }
+gengo-language = "0.14"
 git2 = { version = "0.20.3", default-features = false }
 glob = "0.3.3"
 mlua = "0.11"

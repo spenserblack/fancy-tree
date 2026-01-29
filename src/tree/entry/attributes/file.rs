@@ -1,6 +1,6 @@
 //! Module for file attributes.
 use super::interop::{has_hidden_attribute, is_executable};
-use gengo::Language;
+use gengo_language::Language;
 use std::fs::{File, Metadata};
 use std::io::{self, Read};
 use std::path::Path;

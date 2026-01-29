@@ -5,17 +5,24 @@
 
 A `tree` alternative with git support, code language detection, and nerd fonts.
 
+## Installation
+
+View [`INSTALL.md`](./INSTALL.md)
+
 ## Features
 
 ### Nerd Font icons with language detection
 
-[Nerd Fonts](https://www.nerdfonts.com/) are used for file icons. Each file is analyzed
-to determine the appropriate icon and what color the icon should be.
+[Nerd Fonts](https://www.nerdfonts.com/) are used for file icons. Each file is analyzed to determine the appropriate icon and color.
 
 ### Git Integration
 
 - Git status is displayed
 - Git ignored files' filenames are dimmed
+
+### Highly Configurable
+
+- Customize icons, colors, and behavior through Lua configuration files.
 
 ## Configuration
 

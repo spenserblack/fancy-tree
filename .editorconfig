@@ -32,6 +32,12 @@ indent_size = unset
 indent_style = space
 indent_size = 2
 
+# PowerShell
+[*.ps1]
+end_of_line = CRLF
+indent_style = space
+indent_size = 4
+
 # Python
 [*.py]
 indent_style = space
