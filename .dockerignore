@@ -1,0 +1,13 @@
+.devcontainer/
+.git/
+.github/
+.venv/
+.vscode/
+lua/
+scripts/
+target/
+
+*.md
+.editorconfig
+.git-blame-ignore-revs
+.gitignore
