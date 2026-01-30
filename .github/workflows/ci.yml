@@ -60,5 +60,6 @@ jobs:
     steps:
       - name: Set up Nix
         run: sh <(curl --proto '=https' --tlsv1.2 -L https://nixos.org/nix/install) --no-daemon --yes
+      - uses: actions/checkout@v6
       - name: Build package
         run: nix-build
