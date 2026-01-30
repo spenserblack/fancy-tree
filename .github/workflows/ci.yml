@@ -62,4 +62,6 @@ jobs:
         run: sh <(curl --proto '=https' --tlsv1.2 -L https://nixos.org/nix/install) --no-daemon --yes
       - uses: actions/checkout@v6
       - name: Build package
-        run: nix-build
+        run: |
+          . ~/.nix-profile/etc/profile.d/nix.sh
+          nix-build
