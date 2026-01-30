@@ -58,14 +58,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Set up Nix
-        run: sh <(curl --proto '=https' --tlsv1.2 -L https://nixos.org/nix/install) --no-daemon --yes
       - uses: actions/checkout@v6
-      - name: Build package
-        run: |
-          . ~/.nix-profile/etc/profile.d/nix.sh
-          nix-build
-      - name: Build flake
-        run: |
-          . ~/.nix-profile/etc/profile.d/nix.sh
-          nix --experimental-features nix-command --extra-experimental-features flakes build
+      - uses: cachix/install-nix-action@v31
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+      - run: nix build
