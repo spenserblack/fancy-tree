@@ -51,8 +51,19 @@ jobs:
       - name: Test
         run: cargo test
 
-  check-nix:
-    name: Check Nix
+  check-nix-pkg:
+    name: Check Nix Package
+    needs:
+      - build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: cachix/install-nix-action@v31
+      - run: nix-build
+
+  check-flake:
+    name: Check Flake
     needs:
       - build
     runs-on: ubuntu-latest
