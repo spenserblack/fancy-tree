@@ -62,7 +62,8 @@ jobs:
       - uses: cachix/install-nix-action@v31
         with:
           nix_path: nixpkgs=channel:nixos-stable
-      - run: nix-build
+      - name: Build Nix Package
+        run: nix-build
 
   check-flake:
     name: Check Flake
@@ -75,4 +76,5 @@ jobs:
       - uses: cachix/install-nix-action@v31
         with:
           nix_path: nixpkgs=channel:nixos-unstable
-      - run: nix build
+      - name: Build Flake
+        run: nix build
