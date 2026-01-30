@@ -2,7 +2,7 @@
   description = "Displays file structure as a tree with Nerd Font icons, git statuses, etc.";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs";
+    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-unstable";
   };
 
   outputs = { self, nixpkgs }: {
