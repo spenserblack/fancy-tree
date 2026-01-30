@@ -51,8 +51,8 @@ jobs:
       - name: Test
         run: cargo test
 
-  check-nix-pkg:
-    name: Check Nix Package
+  build-nix:
+    name: Build Nix
     needs:
       - build
     runs-on: ubuntu-latest
@@ -62,19 +62,7 @@ jobs:
       - uses: cachix/install-nix-action@v31
         with:
           nix_path: nixpkgs=channel:nixos-unstable
-      - name: Build Nix Package
+      - name: Build Nix Package (classic)
         run: nix-build
-
-  check-flake:
-    name: Check Flake
-    needs:
-      - build
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v6
-      - uses: cachix/install-nix-action@v31
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
       - name: Build Flake
         run: nix build
