@@ -65,3 +65,7 @@ jobs:
         run: |
           . ~/.nix-profile/etc/profile.d/nix.sh
           nix-build
+      - name: Build flake
+        run: |
+          . ~/.nix-profile/etc/profile.d/nix.sh
+          nix --experimental-features nix-command --extra-experimental-features flakes build

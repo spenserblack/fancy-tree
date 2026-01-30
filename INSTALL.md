@@ -41,3 +41,9 @@ cargo build --release
 ```shell
 nix-build
 ```
+
+### As a Nix flake
+
+```shell
+nix --experimental-features nix-command --extra-experimental-features flakes build
+```
