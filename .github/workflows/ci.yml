@@ -50,3 +50,15 @@ jobs:
 
       - name: Test
         run: cargo test
+
+  check-nix:
+    name: Check Nix
+    needs:
+      - build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Nix
+        run: sh <(curl --proto '=https' --tlsv1.2 -L https://nixos.org/nix/install) --no-daemon --yes
+      - name: Build package
+        run: nix-build
