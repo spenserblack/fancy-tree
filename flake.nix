@@ -5,13 +5,14 @@
     nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-unstable";
   };
 
-  outputs = { self, nixpkgs }: {
-
-    packages.x86_64-linux.fancy-tree =
-      with import nixpkgs { system = "x86_64-linux"; };
-      callPackage ./nix/package.nix { inherit rustPlatform; };
-
-    packages.x86_64-linux.default = self.packages.x86_64-linux.fancy-tree;
-
+  outputs = { self, nixpkgs }: 
+  let
+    system = "x86_64-linux";
+    pkgs = nixpkgs.legacyPackages.${system};
+  in {
+    packages.${system} = rec {
+      fancy-tree = pkgs.callPackage ./nix/package.nix { };
+      default = fancy-tree;
+    };
   };
 }
