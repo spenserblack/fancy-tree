@@ -19,6 +19,9 @@ changelog:
       labels:
         - semver-patch
         - bug
+    - title: Packaging, building, and distribution
+      labels:
+        - packaging
     - title: Other Changes
       labels:
         - "*"
