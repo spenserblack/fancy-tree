@@ -36,13 +36,15 @@ Build the executable from source code and then copy it to a place in `PATH`.
 cargo build --release
 ```
 
-### With `nix-build`
+### With Nix
+
+#### The classic way
 
 ```shell
 nix-build
 ```
 
-### As a Nix flake
+#### The Nix Flakes way
 
 ```shell
 nix --experimental-features nix-command --extra-experimental-features flakes build
