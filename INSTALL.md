@@ -25,3 +25,27 @@ Visit the [latest release](https://github.com/spenserblack/fancy-tree/releases/l
 ```shell
 cargo install --locked fancy-tree
 ```
+
+## From source
+
+Build the executable from source code and then copy it to a place in `PATH`.
+
+### With `cargo`
+
+```shell
+cargo build --release
+```
+
+### With Nix
+
+#### The classic way
+
+```shell
+nix-build
+```
+
+#### The Nix Flakes way
+
+```shell
+nix --experimental-features nix-command --extra-experimental-features flakes build
+```

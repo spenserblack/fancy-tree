@@ -3,3 +3,6 @@
 
 # Rust build files
 /target
+
+# Nix build files
+/result

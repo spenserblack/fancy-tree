@@ -16,6 +16,8 @@ exclude = [
     "INSTALL.md",
     "/lua/",
     "/scripts/",
+    "*.nix",
+    "flake.lock",
 ]
 rust-version = "1.92"
 categories = ["command-line-utilities", "filesystem", "visualization"]
