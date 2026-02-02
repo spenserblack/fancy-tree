@@ -14,6 +14,8 @@ pub struct Builder<'git, 'charset, P: AsRef<Path>> {
     color_choice: Option<ColorChoice>,
     charset: Option<Charset<'charset>>,
     max_level: Option<usize>,
+    /// Override the level limit that may be set by the configuration.
+    unset_level: bool,
     config: Option<config::Main>,
     icons: Option<config::Icons>,
     colors: Option<config::Colors>,
@@ -30,6 +32,7 @@ where
             root,
             git: None,
             max_level: None,
+            unset_level: false,
             charset: None,
             color_choice: None,
             config: None,
@@ -54,6 +57,19 @@ where
     pub fn max_level(self, level: usize) -> Self {
         Self {
             max_level: Some(level),
+            ..self
+        }
+    }
+
+    /// Unsets the maximum depth level for the [`Tree`], returning to the default
+    /// behavior of searching infinitely deep.
+    ///
+    /// This helps override a maximum level that may have been set by the configuration.
+    #[inline]
+    #[must_use]
+    pub fn unset_level(self) -> Self {
+        Self {
+            unset_level: true,
             ..self
         }
     }
@@ -110,10 +126,21 @@ where
     }
 
     /// Creates the [`Tree`].
+    ///
+    /// # Panics
+    ///
+    /// - Panics if `max_level` and `unset_level` were both called.
     pub fn build(self) -> Tree<'git, 'charset, P> {
-        let max_level = self
-            .max_level
-            .or(self.config.as_ref().and_then(|config| config.level()));
+        assert!(
+            !(self.unset_level && self.max_level.is_some()),
+            "max_level cannot be set when unset_level is true"
+        );
+        let max_level = if self.unset_level {
+            None
+        } else {
+            self.max_level
+                .or(self.config.as_ref().and_then(|config| config.level()))
+        };
         Tree {
             root: self.root,
             git: self.git,
@@ -124,5 +151,16 @@ where
             icons: self.icons.unwrap_or_default(),
             colors: self.colors.unwrap_or_default(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic]
+    fn test_cannot_build_unset_level_with_max_level() {
+        Builder::new(".").max_level(1).unset_level().build();
     }
 }
