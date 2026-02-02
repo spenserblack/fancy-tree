@@ -13,7 +13,7 @@ use owo_colors::AnsiColors;
 use owo_colors::OwoColorize;
 use std::fmt::Display;
 use std::io::{self, Write, stdout};
-use std::path::{Path, PathBuf};
+use std::path::{self, Path, PathBuf};
 
 mod builder;
 mod charset;
@@ -285,9 +285,8 @@ where
             .expect("Git root should exist and non-final components should be directories");
 
         let path = path.as_ref();
-        let path = path
-            .canonicalize()
-            .expect("Path should exist and non-final components should be directories");
+        let path = path::absolute(path)
+            .expect("Path should be non-empty and should be able to get the current directory");
         let path = path
             .strip_prefix(git_root)
             .expect("Path should have the git root as a prefix");
