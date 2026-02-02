@@ -111,10 +111,13 @@ where
 
     /// Creates the [`Tree`].
     pub fn build(self) -> Tree<'git, 'charset, P> {
+        let max_level = self
+            .max_level
+            .or(self.config.as_ref().and_then(|config| config.level()));
         Tree {
             root: self.root,
             git: self.git,
-            max_level: self.max_level,
+            max_level,
             charset: self.charset.unwrap_or_default(),
             color_choice: self.color_choice,
             config: self.config.unwrap_or_default(),

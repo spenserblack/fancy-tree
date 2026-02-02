@@ -13,4 +13,8 @@ return {
   ---@type Sorting|nil
   -- When this is nil, the default sorting algorithm will be used.
   sorting = nil,
+  ---@type integer|nil
+  -- When this is not nil, it will set how many levels deep this tool should search in
+  -- the directory tree.
+  level = nil,
 }

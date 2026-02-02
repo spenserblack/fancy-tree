@@ -24,6 +24,8 @@ pub struct Main {
     skip: Option<mlua::Function>,
     /// Determines how to sort files in a directory.
     sorting: Sorting,
+    /// How many levels deep to search before stopping.
+    level: Option<usize>,
 }
 
 impl Main {
@@ -81,6 +83,11 @@ impl Main {
             1.. => Ordering::Greater,
         }
     }
+
+    /// How many levels deep to search before stopping.
+    pub fn level(&self) -> Option<usize> {
+        self.level
+    }
 }
 
 impl Default for Main {
@@ -89,6 +96,7 @@ impl Default for Main {
             color: Default::default(),
             skip: None,
             sorting: Self::default_sorting(),
+            level: None,
         }
     }
 }
@@ -116,10 +124,12 @@ impl FromLua for Main {
         let sorting = table
             .get::<Option<Sorting>>("sorting")?
             .unwrap_or_else(Self::default_sorting);
+        let level = table.get("level")?;
         let main = Main {
             color,
             skip,
             sorting,
+            level,
         };
         Ok(main)
     }
