@@ -24,6 +24,12 @@ pub struct Cli {
     #[arg(short = 'L', long)]
     pub level: Option<usize>,
 
+    /// Force this tool to have no upper limit for level.
+    ///
+    /// Useful for overriding a level set by the configuration file.
+    #[arg(long, alias = "unset-level", conflicts_with = "level")]
+    pub max_level: bool,
+
     /// Edit the main configuration file and exit.
     #[arg(long, num_args = 0..=1, default_missing_value = "config")]
     pub edit_config: Option<EditConfig>,
@@ -105,6 +111,8 @@ impl Cli {
 
         if let Some(level) = self.level {
             builder = builder.max_level(level);
+        } else if self.max_level {
+            builder = builder.unset_level();
         }
 
         let tree = builder.build();
