@@ -275,22 +275,7 @@ where
         P2: AsRef<Path>,
     {
         let git_root = self.git.and_then(|git| git.root_dir())?;
-
-        // HACK Git root seems to have `/` separators, which breaks path cleanup on
-        //      Windows. This cleans up the git root so it can be used with
-        //      strip_prefix.
-        #[cfg(windows)]
-        let git_root = git_root
-            .canonicalize()
-            .expect("Git root should exist and non-final components should be directories");
-
-        let path = path.as_ref();
-        let path = path::absolute(path)
-            .expect("Path should be non-empty and should be able to get the current directory");
-        let path = path
-            .strip_prefix(git_root)
-            .expect("Path should have the git root as a prefix");
-        Some(path.to_path_buf())
+        clean_path_for_git2(git_root, path)
     }
 
     /// Gets the color choice to use.
@@ -317,4 +302,30 @@ impl ColoredStatus for status::Tracked {
     fn get_color(config: &config::Colors, status: Status) -> Option<Color> {
         config.for_tracked_git_status(status)
     }
+}
+
+/// Helper for cleaning up a file path so that it can be used with the opened
+/// [`git2::Repository`].
+fn clean_path_for_git2<P1, P2>(git_root: P1, path: P2) -> Option<PathBuf>
+where
+    P1: AsRef<Path>,
+    P2: AsRef<Path>,
+{
+    let git_root = git_root.as_ref();
+
+    // HACK Git root seems to have `/` separators, which breaks path cleanup on
+    //      Windows. This cleans up the git root so it can be used with
+    //      strip_prefix.
+    #[cfg(windows)]
+    let git_root = git_root
+        .canonicalize()
+        .expect("Git root should exist and non-final components should be directories");
+
+    let path = path.as_ref();
+    let path = path::absolute(path)
+        .expect("Path should be non-empty and should be able to get the current directory");
+    let path = path
+        .strip_prefix(git_root)
+        .expect("Path should have the git root as a prefix");
+    Some(path.to_path_buf())
 }
