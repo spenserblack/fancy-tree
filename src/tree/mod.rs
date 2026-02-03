@@ -317,9 +317,8 @@ where
     //      Windows. This cleans up the git root so it can be used with
     //      strip_prefix.
     #[cfg(windows)]
-    let git_root = git_root
-        .canonicalize()
-        .expect("Git root should exist and non-final components should be directories");
+    let git_root = path::absolute(git_root)
+        .expect("Git root should be non-empty and should be able to get the current directory");
 
     let path = path.as_ref();
     let path = path::absolute(path)
@@ -328,4 +327,33 @@ where
         .strip_prefix(git_root)
         .expect("Path should have the git root as a prefix");
     Some(path.to_path_buf())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rstest::rstest;
+    use std::fs::{self, File};
+    use tempfile::TempDir;
+
+    #[rstest]
+    #[cfg_attr(unix, case("repo", "repo/src/lib.rs", Some("src/lib.rs")))]
+    #[cfg_attr(windows, case("Dir/Repo", r"Dir\Repo\src\lib.rs", Some(r"src\lib.rs")))]
+    fn test_clean_path_for_git2(
+        #[case] git_root: &str,
+        #[case] path: &str,
+        #[case] expected: Option<&str>,
+    ) {
+        // NOTE Create the "repository" and its files in a temporary directory.
+        let container = TempDir::with_prefix("fancy-tree-").unwrap();
+        let git_root = container.path().join(git_root);
+        let path = container.path().join(path);
+        fs::create_dir_all(&git_root).unwrap();
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        File::create_new(&path).unwrap();
+
+        let expected = expected.map(PathBuf::from);
+
+        assert_eq!(expected, clean_path_for_git2(git_root, path));
+    }
 }

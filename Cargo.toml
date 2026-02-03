@@ -46,3 +46,4 @@ owo-colors = { version = "4.2.3", features = ["supports-colors"] }
 
 [dev-dependencies]
 rstest = "0.26"
+tempfile = "3.24.0"
