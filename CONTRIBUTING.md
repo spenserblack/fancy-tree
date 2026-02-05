@@ -34,6 +34,16 @@ When adding an icon for a glob, make sure to use the correct syntax for the
 **Match by literal filenames and extensions if you can.** This is much cheaper
 computationally than adding a new glob pattern.
 
+## Updating colors
+
+Updating colors is very similar to updating icons. Mostly, you can follow the steps for
+updating icons, ignoring any instructions specific to Nerd Fonts. The mappings can be
+found in [`src/colors/mod.rs`](./src/colors/mod.rs).
+
+[gengo][gengo] also provides colors for coding languages. If the color you want to
+update is related to a *coding language,* you should consider contributing to
+[gengo][gengo] instead.
+
 [gengo]: https://github.com/spenserblack/gengo
 [glob-crate]: https://docs.rs/glob/latest/glob/
 [nf-cheat-sheet]: https://www.nerdfonts.com/cheat-sheet
