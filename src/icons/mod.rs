@@ -51,6 +51,7 @@ fn for_filename(filename: &str) -> Option<&'static str> {
 fn for_extension(extension: &str) -> Option<&'static str> {
     // NOTE These should be in alphabetical order for easier code review.
     let icon = match extension {
+        "7z" | "tar" | "zip" => shared::ARCHIVE,
         "cfg" => "\u{e615}", // 
         "gif" | "jpeg" | "jpg" | "png" => shared::IMAGE,
         "lock" => shared::LOCK,
