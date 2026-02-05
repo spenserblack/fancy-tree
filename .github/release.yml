@@ -15,6 +15,9 @@ changelog:
       labels:
         - semver-minor
         - enhancement
+    - title: Colors and icons
+      labels:
+        - file-support
     - title: Fixes
       labels:
         - semver-patch
