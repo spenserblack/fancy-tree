@@ -48,9 +48,12 @@ fn for_filename(filename: &str) -> Option<Color> {
 fn for_extension(extension: &str) -> Option<Color> {
     // NOTE These should be in alphabetical order for easier code review.
     let color = match extension {
+        "7z" => Black.into(),
         "gif" => Green.into(),
         "jpeg" | "jpg" => Yellow.into(),
         "png" => Cyan.into(),
+        "tar" => Green.into(),
+        "zip" => Blue.into(),
         _ => return None,
     };
 
