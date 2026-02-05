@@ -5,6 +5,7 @@ pub mod cli;
 pub mod color;
 pub mod colors;
 pub mod config;
+pub(crate) mod ext;
 mod git;
 pub mod icons;
 pub mod lua;

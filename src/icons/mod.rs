@@ -1,4 +1,5 @@
 //! Provides icons for filepaths.
+use crate::ext::PathExt as _;
 use std::path::Path;
 use std::sync::LazyLock;
 
@@ -11,6 +12,15 @@ where
     path.file_name()
         .and_then(|s| s.to_str())
         .and_then(for_filename)
+        .or_else(|| {
+            path.double_extension()
+                .and_then(|(prefix, suffix)| {
+                    prefix
+                        .to_str()
+                        .and_then(|prefix| suffix.to_str().map(|suffix| (prefix, suffix)))
+                })
+                .and_then(for_double_extension)
+        })
         .or_else(|| {
             path.extension()
                 .and_then(|extension| extension.to_str())
@@ -50,6 +60,16 @@ fn for_extension(extension: &str) -> Option<&'static str> {
     Some(icon)
 }
 
+/// Gets an icon for the double extension.
+fn for_double_extension(double_extension: (&str, &str)) -> Option<&'static str> {
+    let color = match double_extension {
+        ("tar", "gz") => shared::ARCHIVE,
+        _ => return None,
+    };
+
+    Some(color)
+}
+
 /// Gets an icon based on a matching glob for a path.
 fn for_filename_glob(path: &Path) -> Option<&'static str> {
     use glob::{MatchOptions, Pattern};
@@ -82,6 +102,8 @@ fn for_filename_glob(path: &Path) -> Option<&'static str> {
 /// Icons that represent one file type, but have multiple filenames and/or extensions
 /// for that file type.
 mod shared {
+    /// Icon for archive files, like `.zip` or `.tar.gz`.
+    pub const ARCHIVE: &str = "\u{ea98}"; // 
     /// Icon for documentation files, like READMEs.
     pub const DOC: &str = "\u{eaa4}"; // 
     /// Icon for license files.
@@ -98,12 +120,15 @@ mod tests {
     use rstest::rstest;
 
     #[rstest]
-    #[case("gif")]
-    #[case("jpeg")]
-    #[case("jpg")]
-    #[case("png")]
-    fn uses_image_icon_for_common_image_extensions(#[case] ext: &str) {
-        let filename = format!("example.{ext}");
-        assert_eq!(shared::IMAGE, for_path(&filename).unwrap());
+    #[case("example.tar.gz", Some(shared::ARCHIVE))]
+    #[case("example.gif", Some(shared::IMAGE))]
+    #[case("example.jpeg", Some(shared::IMAGE))]
+    #[case("example.jpg", Some(shared::IMAGE))]
+    #[case("example.png", Some(shared::IMAGE))]
+    fn test_for_path<P>(#[case] path: P, #[case] expected: Option<&str>)
+    where
+        P: AsRef<Path>,
+    {
+        assert_eq!(expected, for_path(path));
     }
 }

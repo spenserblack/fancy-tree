@@ -13,7 +13,7 @@ use owo_colors::{
 mod choice;
 
 /// Either ANSI colors or full RGB.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Color {
     Ansi(AnsiColors),
     Rgb(u8, u8, u8),
