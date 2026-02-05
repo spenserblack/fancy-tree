@@ -1,6 +1,7 @@
 //! Module for configuring colors.
 use super::ConfigFile;
 use crate::color::Color;
+use crate::colors;
 use crate::git::status::{self, Status};
 use crate::lua::interop;
 use crate::tree::{
@@ -35,11 +36,7 @@ impl Colors {
         P: AsRef<Path>,
     {
         let path = entry.path();
-        let default: Option<Color> = match entry.attributes() {
-            Attributes::Directory(_) => Self::DEFAULT_DIRECTORY_COLOR,
-            Attributes::File(attributes) => Self::get_file_color(attributes),
-            Attributes::Symlink(_) => Self::DEFAULT_SYMLINK_COLOR,
-        };
+        let default = colors::for_path(entry.path()).or_else(|| Self::default_entry_color(entry));
         let attributes = interop::FileAttributes::from(entry);
 
         // TODO Report error
@@ -59,6 +56,17 @@ impl Colors {
     /// Get the color for an tracked file's status.
     pub fn for_tracked_git_status(&self, status: Status) -> Option<Color> {
         self.git_statuses.get_tracked_color(status)
+    }
+
+    fn default_entry_color<P>(entry: &Entry<P>) -> Option<Color>
+    where
+        P: AsRef<Path>,
+    {
+        match entry.attributes() {
+            Attributes::Directory(_) => Self::DEFAULT_DIRECTORY_COLOR,
+            Attributes::File(attributes) => Self::get_file_color(attributes),
+            Attributes::Symlink(_) => Self::DEFAULT_SYMLINK_COLOR,
+        }
     }
 
     /// Gets the color for a file.

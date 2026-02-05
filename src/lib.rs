@@ -3,6 +3,7 @@ pub use tree::Tree;
 
 pub mod cli;
 pub mod color;
+pub mod colors;
 pub mod config;
 mod git;
 pub mod icons;

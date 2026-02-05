@@ -105,6 +105,13 @@ impl IntoLua for Color {
     }
 }
 
+impl From<AnsiColors> for Color {
+    #[inline]
+    fn from(value: AnsiColors) -> Self {
+        Self::Ansi(value)
+    }
+}
+
 impl From<Color> for DynColors {
     fn from(value: Color) -> Self {
         match value {
