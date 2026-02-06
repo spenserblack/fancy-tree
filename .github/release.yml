@@ -1,7 +1,7 @@
 changelog:
   exclude:
     labels:
-      - ignore-for-release
+      - "release:ignore"
     authors:
       - dependabot
       - dependabot[bot]
@@ -10,17 +10,17 @@ changelog:
   categories:
     - title: ":boom: Breaking changes"
       labels:
-        - semver-major
+        - "release:major"
     - title: New Features
       labels:
-        - semver-minor
+        - "release:minor"
         - enhancement
     - title: Colors and icons
       labels:
-        - file-support
+        - file support
     - title: Fixes
       labels:
-        - semver-patch
+        - "release:patch"
         - bug
     - title: Packaging, building, and distribution
       labels:
