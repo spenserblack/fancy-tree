@@ -1,0 +1,24 @@
+name: Bug report
+description: File a bug report.
+labels:
+  - bug
+type: bug
+body:
+  - type: dropdown
+    id: platform
+    validations:
+      required: true
+    attributes:
+      label: Platform
+      description: What platform are you using?
+      options:
+        - Unix
+        - Windows
+  - type: textarea
+    id: what-happened
+    validations:
+      required: true
+    attributes:
+      label: What happened?
+      description: Describe what happened that was unexpected.
+      placeholder: I did this and got X output, but I expected Y.
