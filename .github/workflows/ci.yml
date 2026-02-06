@@ -51,11 +51,29 @@ jobs:
       - name: Test
         run: cargo test
 
+  check-nix-changes:
+    name: Check if Nix files were changed
+    runs-on: ubuntu-latest
+    outputs:
+        has-changes: ${{ steps.changed-files.outputs.any_changed }}
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: tj-actions/changed-files@v47
+        id: changed-files
+        with:
+          files: |
+            **.nix
+            nix/**
+            flake.lock
+
   build-nix:
     name: Build Nix
     needs:
       - build
+      - check-nix-changes
     runs-on: ubuntu-latest
+    if: ${{ needs.check-nix-changes.outputs.has-changes == 'true' }}
 
     steps:
       - uses: actions/checkout@v6
