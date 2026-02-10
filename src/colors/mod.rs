@@ -52,6 +52,7 @@ fn for_extension(extension: &str) -> Option<Color> {
         "gif" => Green.into(),
         "jpeg" | "jpg" => Yellow.into(),
         "png" => Cyan.into(),
+        "sqlite" | "sqlite3" => Blue.into(),
         "tar" => Green.into(),
         "zip" => Blue.into(),
         _ => return None,
