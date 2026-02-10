@@ -55,6 +55,7 @@ fn for_extension(extension: &str) -> Option<&'static str> {
         "cfg" => "\u{e615}", // 
         "gif" | "jpeg" | "jpg" | "png" => shared::IMAGE,
         "lock" => shared::LOCK,
+        "sqlite" | "sqlite3" => shared::DATABASE,
         _ => return None,
     };
 
@@ -105,6 +106,8 @@ fn for_filename_glob(path: &Path) -> Option<&'static str> {
 mod shared {
     /// Icon for archive files, like `.zip` or `.tar.gz`.
     pub const ARCHIVE: &str = "\u{ea98}"; // 
+    /// Icon for database files.
+    pub const DATABASE: &str = "\u{e706}"; // 
     /// Icon for documentation files, like READMEs.
     pub const DOC: &str = "\u{eaa4}"; // 
     /// Icon for license files.
