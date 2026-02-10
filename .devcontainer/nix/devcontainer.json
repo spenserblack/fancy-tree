@@ -1,8 +1,11 @@
 {
-  "name": "Rust",
+  "name": "With Nix",
   "build": {
-    "dockerfile": "Dockerfile",
+    "dockerfile": "../Dockerfile",
     "args": { "VARIANT": "1" }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/nix:1": {}
   },
   "customizations": {
     "vscode": {
