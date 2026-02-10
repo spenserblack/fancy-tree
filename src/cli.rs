@@ -10,6 +10,7 @@ use std::path::PathBuf;
 
 /// Lists files in a directory.
 #[derive(Parser)]
+#[command(version)]
 #[deny(missing_docs)]
 pub struct Cli {
     /// The path to search in.
