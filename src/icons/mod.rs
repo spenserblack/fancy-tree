@@ -36,7 +36,9 @@ fn for_filename(filename: &str) -> Option<&'static str> {
     let icon = match filename {
         "CONTRIBUTING.md" => shared::DOC,
         ".editorconfig" => "\u{e652}", // 
-        ".git" => "\u{e702}",          // 
+        ".git" | ".gitattributes" | ".gitignore" | ".gitmodules" | ".git-blame-ignore-revs" => {
+            "\u{e702}"
+        } // 
         ".github" => "\u{e709}",       // 
         "LICENCE" | "LICENSE" | "licence" | "license" => shared::LICENSE,
         "package-lock.json" | "pnpm-lock.yaml" => shared::LOCK,
