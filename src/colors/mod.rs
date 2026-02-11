@@ -38,6 +38,7 @@ fn for_filename(filename: &str) -> Option<Color> {
     let color = match filename {
         ".git" => Red.into(),
         ".github" => Black.into(),
+        "LICENCE" | "LICENSE" | "licence" | "license" => shared::LICENSE,
         ".vscode" => Blue.into(),
         _ => return None,
     };
@@ -76,7 +77,7 @@ fn for_filename_glob(path: &Path) -> Option<Color> {
     use glob::{MatchOptions, Pattern};
 
     /// Maps a raw glob pattern to a color with `(glob, color)` tuples.
-    const RAW_MAPPINGS: &[(&str, Color)] = &[("LICEN[CS]E-*", Color::Ansi(Yellow))];
+    const RAW_MAPPINGS: &[(&str, Color)] = &[("LICEN[CS]E-*", shared::LICENSE)];
 
     const OPTIONS: MatchOptions = MatchOptions {
         case_sensitive: false,
@@ -98,6 +99,15 @@ fn for_filename_glob(path: &Path) -> Option<Color> {
             .iter()
             .find_map(|(glob, color)| glob.matches_with(path, OPTIONS).then_some(*color))
     })
+}
+
+/// Colors that represent one file type, but have multiple filenames and/or extensions
+/// for that file type.
+mod shared {
+    use super::*;
+
+    /// Color for license files.
+    pub const LICENSE: Color = Color::Ansi(Yellow);
 }
 
 #[cfg(test)]
