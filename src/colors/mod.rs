@@ -36,7 +36,9 @@ fn for_filename(filename: &str) -> Option<Color> {
     // NOTE These should be in alphabetical order and ignoring any leading `.` for
     //      easier code review.
     let color = match filename {
-        ".git" => Red.into(),
+        ".git" | ".gitattributes" | ".gitignore" | ".gitmodules" | ".git-blame-ignore-revs" => {
+            Red.into()
+        }
         ".github" => Black.into(),
         ".vscode" => Blue.into(),
         _ => return None,
