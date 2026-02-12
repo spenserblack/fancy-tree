@@ -1,6 +1,6 @@
 [package]
 name = "fancy-tree"
-version = "0.1.4"
+version = "0.1.5"
 description = "A `tree` alternative with git support, code language detection, and nerd fonts."
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/spenserblack/fancy-tree"
