@@ -55,7 +55,7 @@ fn for_extension(extension: &str) -> Option<&'static str> {
     let icon = match extension {
         "7z" | "tar" | "zip" => shared::ARCHIVE,
         "bak" => "\u{f006f}", // 󰁯
-        "cfg" => "\u{e615}", // 
+        "cfg" => "\u{e615}",  // 
         "gif" | "jpeg" | "jpg" | "png" => shared::IMAGE,
         "lock" => shared::LOCK,
         "sqlite" | "sqlite3" => shared::DATABASE,
