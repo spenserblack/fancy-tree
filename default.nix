@@ -1,2 +1,2 @@
 with import <nixpkgs> { };
-callPackage ./nix/package.nix { inherit rustPlatform; }
+callPackage ./packaging/nix/package.nix { inherit rustPlatform; }

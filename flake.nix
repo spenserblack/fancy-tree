@@ -5,13 +5,13 @@
     nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-unstable";
   };
 
-  outputs = { self, nixpkgs }: 
+  outputs = { self, nixpkgs }:
   let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
   in {
     packages.${system} = rec {
-      fancy-tree = pkgs.callPackage ./nix/package.nix { };
+      fancy-tree = pkgs.callPackage ./packaging/nix/package.nix { };
       default = fancy-tree;
     };
   };

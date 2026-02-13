@@ -1,8 +1,8 @@
 { rustPlatform }: rustPlatform.buildRustPackage {
   pname = "fancy-tree";
   version = "0.1.4";
-  src = ../.;
+  src = ../../.;
   cargoLock = {
-    lockFile = ../Cargo.lock;
+    lockFile = ../../Cargo.lock;
   };
 }
